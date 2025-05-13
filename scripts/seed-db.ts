@@ -1,5 +1,5 @@
 import clientPromise from "../lib/mongodb"
-import { hash } from "bcrypt"
+import { hash } from "bcryptjs"
 
 async function seedDatabase() {
   console.log("Connecting to MongoDB...")

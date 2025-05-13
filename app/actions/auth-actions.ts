@@ -1,6 +1,6 @@
 "use server"
 
-import { hash } from "bcrypt"
+import { hash } from "bcryptjs"
 import { createUser, getUserByEmail } from "@/lib/db-service"
 import { redirect } from "next/navigation"
 import type { User } from "@/lib/models"
