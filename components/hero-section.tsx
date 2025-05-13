@@ -11,11 +11,11 @@ export default function HeroSection() {
           <div className="flex flex-col justify-center space-y-4">
             <div className="space-y-2">
               <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
-                Find Help for Any Task
+                Find Help for Any Daily Task
               </h1>
               <p className="max-w-[600px] text-gray-500 md:text-xl">
-                Connect with skilled individuals for household tasks, tech help, labor work, and more. Get things done
-                quickly and affordably.
+                Connect with skilled individuals for household tasks, tech help, labor work, and more across India. Get
+                things done quickly and affordably.
               </p>
             </div>
             <div className="flex flex-col gap-2 min-[400px]:flex-row">
@@ -33,7 +33,7 @@ export default function HeroSection() {
               <p className="text-sm text-gray-500">Search for services in your area</p>
             </div>
             <div className="flex items-center space-x-2">
-              <Input placeholder="e.g. home cleaning, computer repair" className="flex-1" />
+              <Input placeholder="e.g. home cleaning, plumbing, electrician" className="flex-1" />
               <Button type="submit" size="icon">
                 <Search className="h-4 w-4" />
                 <span className="sr-only">Search</span>
@@ -42,16 +42,16 @@ export default function HeroSection() {
             <div className="space-y-2">
               <p className="text-sm font-medium">Popular searches:</p>
               <div className="flex flex-wrap gap-2">
-                <Link href="/services/cleaning" className="text-sm text-primary hover:underline">
+                <Link href="/services?category=household" className="text-sm text-primary hover:underline">
                   Cleaning
                 </Link>
-                <Link href="/services/tech-support" className="text-sm text-primary hover:underline">
+                <Link href="/services?category=tech-help" className="text-sm text-primary hover:underline">
                   Tech Support
                 </Link>
-                <Link href="/services/furniture-assembly" className="text-sm text-primary hover:underline">
-                  Furniture Assembly
+                <Link href="/services?category=labor" className="text-sm text-primary hover:underline">
+                  Plumbing
                 </Link>
-                <Link href="/services/gardening" className="text-sm text-primary hover:underline">
+                <Link href="/services?category=gardening" className="text-sm text-primary hover:underline">
                   Gardening
                 </Link>
               </div>

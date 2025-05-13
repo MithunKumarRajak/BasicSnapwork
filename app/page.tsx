@@ -5,8 +5,12 @@ import { Search } from "lucide-react"
 import ServiceCard from "@/components/service-card"
 import CategoryList from "@/components/category-list"
 import HeroSection from "@/components/hero-section"
+import { getServices, getCategories } from "@/lib/db-service"
 
-export default function Home() {
+export default async function Home() {
+  const services = await getServices(3)
+  const categories = await getCategories()
+
   return (
     <main className="flex min-h-screen flex-col">
       <HeroSection />
@@ -19,7 +23,7 @@ export default function Home() {
           </p>
         </div>
 
-        <CategoryList />
+        <CategoryList categories={categories} />
       </section>
 
       <section className="container py-12 space-y-6 bg-slate-50">
@@ -29,33 +33,19 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <ServiceCard
-            title="Home Cleaning"
-            description="Professional home cleaning services at affordable rates"
-            price="$25/hr"
-            rating={4.8}
-            provider="Maria S."
-            image="/placeholder.svg?height=200&width=300"
-            category="Household"
-          />
-          <ServiceCard
-            title="Computer Repair"
-            description="Fix any computer issues with same-day service"
-            price="$40/hr"
-            rating={4.9}
-            provider="Alex T."
-            image="/placeholder.svg?height=200&width=300"
-            category="Tech Help"
-          />
-          <ServiceCard
-            title="Furniture Assembly"
-            description="Quick and reliable furniture assembly service"
-            price="$30/hr"
-            rating={4.7}
-            provider="John D."
-            image="/placeholder.svg?height=200&width=300"
-            category="Labor"
-          />
+          {services.map((service) => (
+            <ServiceCard
+              key={service._id?.toString()}
+              id={service._id?.toString() || ""}
+              title={service.title}
+              description={service.description}
+              price={service.price}
+              rating={service.rating || 0}
+              provider="Service Provider" // In a real app, fetch provider name
+              image={service.images[0] || "/placeholder.svg?height=200&width=300"}
+              category={service.category}
+            />
+          ))}
         </div>
 
         <div className="flex justify-center mt-8">

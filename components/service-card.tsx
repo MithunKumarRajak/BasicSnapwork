@@ -5,9 +5,10 @@ import { Badge } from "@/components/ui/badge"
 import { Star } from "lucide-react"
 
 interface ServiceCardProps {
+  id: string
   title: string
   description: string
-  price: string
+  price: number
   rating: number
   provider: string
   image: string
@@ -15,6 +16,7 @@ interface ServiceCardProps {
 }
 
 export default function ServiceCard({
+  id,
   title,
   description,
   price,
@@ -23,8 +25,11 @@ export default function ServiceCard({
   image,
   category,
 }: ServiceCardProps) {
+  // Format price in Indian Rupees
+  const formattedPrice = `₹${price.toLocaleString("en-IN")}`
+
   return (
-    <Link href={`/service/${title.toLowerCase().replace(/\s+/g, "-")}`}>
+    <Link href={`/service/${id}`}>
       <Card className="overflow-hidden transition-all hover:shadow-md">
         <div className="aspect-video relative">
           <Image src={image || "/placeholder.svg"} alt={title} fill className="object-cover" />
@@ -36,14 +41,14 @@ export default function ServiceCard({
           <div className="flex items-center mt-2">
             <div className="flex items-center">
               <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-              <span className="ml-1 text-sm font-medium">{rating}</span>
+              <span className="ml-1 text-sm font-medium">{rating.toFixed(1)}</span>
             </div>
             <span className="mx-2 text-muted-foreground">•</span>
             <span className="text-sm text-muted-foreground">by {provider}</span>
           </div>
         </CardContent>
         <CardFooter className="p-4 pt-0 flex justify-between items-center">
-          <span className="font-bold text-lg">{price}</span>
+          <span className="font-bold text-lg">{formattedPrice}/hr</span>
           <Badge variant="outline" className="hover:bg-primary hover:text-primary-foreground">
             View Details
           </Badge>

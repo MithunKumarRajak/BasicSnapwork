@@ -4,8 +4,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider"
 import ServiceCard from "@/components/service-card"
 import { Search } from "lucide-react"
+import { getServices, getCategories } from "@/lib/db-service"
 
-export default function ServicesPage() {
+export default async function ServicesPage({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | string[] | undefined }
+}) {
+  const category = typeof searchParams.category === "string" ? searchParams.category : undefined
+  const services = await getServices(20, category)
+  const categories = await getCategories()
+
   return (
     <main className="container py-8">
       <div className="flex flex-col space-y-4">
@@ -20,28 +29,27 @@ export default function ServicesPage() {
 
             <div className="space-y-2">
               <h3 className="text-sm font-medium">Category</h3>
-              <Select defaultValue="all">
+              <Select defaultValue={category || "all"}>
                 <SelectTrigger>
                   <SelectValue placeholder="All Categories" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Categories</SelectItem>
-                  <SelectItem value="household">Household</SelectItem>
-                  <SelectItem value="tech">Tech Help</SelectItem>
-                  <SelectItem value="labor">Labor</SelectItem>
-                  <SelectItem value="gardening">Gardening</SelectItem>
-                  <SelectItem value="tutoring">Tutoring</SelectItem>
-                  <SelectItem value="delivery">Delivery</SelectItem>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat._id?.toString()} value={cat.slug}>
+                      {cat.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
               <h3 className="text-sm font-medium">Price Range</h3>
-              <Slider defaultValue={[50]} max={100} step={1} />
+              <Slider defaultValue={[500]} max={2000} step={100} />
               <div className="flex items-center justify-between">
-                <span className="text-sm">$0</span>
-                <span className="text-sm">$100+</span>
+                <span className="text-sm">₹0</span>
+                <span className="text-sm">₹2000+</span>
               </div>
             </div>
 
@@ -74,60 +82,26 @@ export default function ServicesPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <ServiceCard
-              title="Home Cleaning"
-              description="Professional home cleaning services at affordable rates"
-              price="$25/hr"
-              rating={4.8}
-              provider="Maria S."
-              image="/placeholder.svg?height=200&width=300"
-              category="Household"
-            />
-            <ServiceCard
-              title="Computer Repair"
-              description="Fix any computer issues with same-day service"
-              price="$40/hr"
-              rating={4.9}
-              provider="Alex T."
-              image="/placeholder.svg?height=200&width=300"
-              category="Tech Help"
-            />
-            <ServiceCard
-              title="Furniture Assembly"
-              description="Quick and reliable furniture assembly service"
-              price="$30/hr"
-              rating={4.7}
-              provider="John D."
-              image="/placeholder.svg?height=200&width=300"
-              category="Labor"
-            />
-            <ServiceCard
-              title="Lawn Mowing"
-              description="Keep your lawn looking great with regular maintenance"
-              price="$35/hr"
-              rating={4.5}
-              provider="Robert K."
-              image="/placeholder.svg?height=200&width=300"
-              category="Gardening"
-            />
-            <ServiceCard
-              title="Math Tutoring"
-              description="Expert math tutoring for all grade levels"
-              price="$45/hr"
-              rating={4.9}
-              provider="Sarah L."
-              image="/placeholder.svg?height=200&width=300"
-              category="Tutoring"
-            />
-            <ServiceCard
-              title="Food Delivery"
-              description="Fast and reliable food delivery service"
-              price="$15/delivery"
-              rating={4.6}
-              provider="Michael P."
-              image="/placeholder.svg?height=200&width=300"
-              category="Delivery"
-            />
+            {services.length > 0 ? (
+              services.map((service) => (
+                <ServiceCard
+                  key={service._id?.toString()}
+                  id={service._id?.toString() || ""}
+                  title={service.title}
+                  description={service.description}
+                  price={service.price}
+                  rating={service.rating || 0}
+                  provider="Service Provider" // In a real app, fetch provider name
+                  image={service.images[0] || "/placeholder.svg?height=200&width=300"}
+                  category={service.category}
+                />
+              ))
+            ) : (
+              <div className="col-span-full text-center py-12">
+                <h3 className="text-lg font-medium">No services found</h3>
+                <p className="text-muted-foreground mt-2">Try adjusting your filters or search terms</p>
+              </div>
+            )}
           </div>
         </div>
       </div>
