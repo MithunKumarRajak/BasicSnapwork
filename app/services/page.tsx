@@ -12,8 +12,24 @@ export default async function ServicesPage({
   searchParams: { [key: string]: string | string[] | undefined }
 }) {
   const category = typeof searchParams.category === "string" ? searchParams.category : undefined
-  const services = await getServices(20, category)
-  const categories = await getCategories()
+
+  // Fetch data with error handling
+  let services = []
+  let categories = []
+
+  try {
+    services = await getServices(20, category)
+  } catch (error) {
+    console.error("Failed to fetch services:", error)
+    // Continue with empty services array
+  }
+
+  try {
+    categories = await getCategories()
+  } catch (error) {
+    console.error("Failed to fetch categories:", error)
+    // Continue with empty categories array
+  }
 
   return (
     <main className="container py-8">

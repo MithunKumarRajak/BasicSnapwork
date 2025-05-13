@@ -12,15 +12,26 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 
 export default async function ServicePage({ params }: { params: { id: string } }) {
-  const service = await getServiceById(params.id)
+  let service = null
+  let provider = null
+  let reviews = []
+  let session = null
 
-  if (!service) {
+  try {
+    service = await getServiceById(params.id)
+
+    if (!service) {
+      notFound()
+    }
+
+    // Only fetch these if service exists
+    provider = await getUserById(service.providerId.toString())
+    reviews = await getReviewsByService(params.id)
+    session = await getServerSession(authOptions)
+  } catch (error) {
+    console.error("Error fetching service data:", error)
     notFound()
   }
-
-  const provider = await getUserById(service.providerId.toString())
-  const reviews = await getReviewsByService(params.id)
-  const session = await getServerSession(authOptions)
 
   // Format price in Indian Rupees
   const formattedPrice = `₹${service.price.toLocaleString("en-IN")}`
@@ -53,7 +64,9 @@ export default async function ServicePage({ params }: { params: { id: string } }
             {service.images.map((image, index) => (
               <div
                 key={index}
-                className={`relative rounded-lg overflow-hidden ${index === 0 ? "col-span-2 aspect-video" : "aspect-square"}`}
+                className={`relative rounded-lg overflow-hidden ${
+                  index === 0 ? "col-span-2 aspect-video" : "aspect-square"
+                }`}
               >
                 <Image
                   src={image || "/placeholder.svg"}
@@ -99,7 +112,9 @@ export default async function ServicePage({ params }: { params: { id: string } }
                                   {[1, 2, 3, 4, 5].map((star) => (
                                     <Star
                                       key={star}
-                                      className={`h-3 w-3 ${star <= review.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`}
+                                      className={`h-3 w-3 ${
+                                        star <= review.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
+                                      }`}
                                     />
                                   ))}
                                 </div>
