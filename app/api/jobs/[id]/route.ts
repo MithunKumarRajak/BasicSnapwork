@@ -1,4 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { getServerSession } from "next-auth/next"
+import { authOptions } from "@/lib/auth"
 import dbConnect from "@/lib/db"
 import Job from "@/models/Job"
 
@@ -21,17 +23,28 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
   try {
+    const session = await getServerSession(authOptions)
+
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
     await dbConnect()
+
+    const job = await Job.findById(params.id)
+
+    if (!job) {
+      return NextResponse.json({ error: "Job not found" }, { status: 404 })
+    }
+
+    // Check if the user is the owner of the job
+    if (job.postedBy.toString() !== session.user.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
+    }
 
     const body = await req.json()
 
-    // In a real app, you would verify that the user is the owner of the job
-
     const updatedJob = await Job.findByIdAndUpdate(params.id, { $set: body }, { new: true })
-
-    if (!updatedJob) {
-      return NextResponse.json({ error: "Job not found" }, { status: 404 })
-    }
 
     return NextResponse.json(updatedJob)
   } catch (error) {
@@ -42,15 +55,26 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   try {
+    const session = await getServerSession(authOptions)
+
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
     await dbConnect()
 
-    // In a real app, you would verify that the user is the owner of the job
+    const job = await Job.findById(params.id)
 
-    const deletedJob = await Job.findByIdAndDelete(params.id)
-
-    if (!deletedJob) {
+    if (!job) {
       return NextResponse.json({ error: "Job not found" }, { status: 404 })
     }
+
+    // Check if the user is the owner of the job
+    if (job.postedBy.toString() !== session.user.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
+    }
+
+    await Job.findByIdAndDelete(params.id)
 
     return NextResponse.json({ message: "Job deleted successfully" })
   } catch (error) {

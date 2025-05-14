@@ -23,7 +23,11 @@ const categories = [
   { name: "Repairs", value: "repairs" },
 ]
 
-export default function PostJobForm() {
+interface PostJobFormProps {
+  userId: string
+}
+
+export default function PostJobForm({ userId }: PostJobFormProps) {
   const router = useRouter()
   const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -75,6 +79,7 @@ export default function PostJobForm() {
           ...formData,
           budget: Number.parseFloat(formData.budget),
           skills,
+          postedBy: userId,
         }),
       })
 

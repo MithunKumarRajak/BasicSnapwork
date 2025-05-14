@@ -1,4 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { getServerSession } from "next-auth/next"
+import { authOptions } from "@/lib/auth"
 import dbConnect from "@/lib/db"
 import Job from "@/models/Job"
 
@@ -31,17 +33,20 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const session = await getServerSession(authOptions)
+
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
     await dbConnect()
 
     const body = await req.json()
 
-    // In a real app, you would get the user ID from the session
-    // For now, we'll use a placeholder user ID
-    const userId = "65f1e8e3b9b5e80e3c9c0e1a" // Placeholder
-
     const newJob = new Job({
       ...body,
-      postedBy: userId,
+      postedBy: body.postedBy || session.user.id,
+      status: "open",
     })
 
     await newJob.save()

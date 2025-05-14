@@ -1,7 +1,8 @@
 import type { NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import { compare } from "bcryptjs"
-import { getUserByEmail } from "./db-service"
+import dbConnect from "@/lib/db"
+import User from "@/models/User"
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -16,21 +17,31 @@ export const authOptions: NextAuthOptions = {
           return null
         }
 
-        const user = await getUserByEmail(credentials.email)
-        if (!user) {
-          return null
-        }
+        await dbConnect()
 
-        const isPasswordValid = await compare(credentials.password, user.password)
-        if (!isPasswordValid) {
-          return null
-        }
+        try {
+          const user = await User.findOne({ email: credentials.email })
 
-        return {
-          id: user._id!.toString(),
-          email: user.email,
-          name: user.name,
-          role: user.role,
+          if (!user) {
+            return null
+          }
+
+          const isPasswordValid = await compare(credentials.password, user.password)
+
+          if (!isPasswordValid) {
+            return null
+          }
+
+          return {
+            id: user._id.toString(),
+            name: user.name,
+            email: user.email,
+            profileImage: user.profileImage,
+            role: user.role || "user",
+          }
+        } catch (error) {
+          console.error("Authentication error:", error)
+          return null
         }
       },
     }),
@@ -40,6 +51,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id
         token.role = user.role
+        token.profileImage = user.profileImage
       }
       return token
     },
@@ -47,17 +59,18 @@ export const authOptions: NextAuthOptions = {
       if (token) {
         session.user.id = token.id as string
         session.user.role = token.role as string
+        session.user.profileImage = token.profileImage as string | undefined
       }
       return session
     },
   },
   pages: {
-    signIn: "/sign-in",
+    signIn: "/login",
     signOut: "/",
-    error: "/sign-in",
+    error: "/login",
   },
   session: {
     strategy: "jwt",
   },
-  secret: process.env.NEXTAUTH_SECRET || "your-secret-key",
+  secret: process.env.NEXTAUTH_SECRET,
 }

@@ -2,12 +2,28 @@
 
 import Link from "next/link"
 import { useState } from "react"
+import { useSession, signOut } from "next-auth/react"
 import { Button } from "@/components/ui/button"
-import { Menu, X, Search } from "lucide-react"
+import { Menu, X, Search, User, LogOut, Briefcase, Plus } from "lucide-react"
 import { Input } from "@/components/ui/input"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 export default function Navbar() {
+  const { data: session, status } = useSession()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const isLoading = status === "loading"
+
+  const handleSignOut = () => {
+    signOut({ callbackUrl: "/" })
+  }
 
   return (
     <header className="border-b">
@@ -33,12 +49,57 @@ export default function Navbar() {
             <Link href="/post-job" className="text-sm font-medium hover:text-primary">
               Post a Job
             </Link>
-            <Button variant="outline" size="sm" asChild>
-              <Link href="/login">Login</Link>
-            </Button>
-            <Button size="sm" asChild>
-              <Link href="/register">Sign Up</Link>
-            </Button>
+
+            {isLoading ? (
+              <div className="h-8 w-24 animate-pulse rounded bg-muted"></div>
+            ) : session ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src="/placeholder.svg" alt={session.user.name} />
+                      <AvatarFallback>{session.user.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard">
+                      <User className="mr-2 h-4 w-4" />
+                      Dashboard
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard/jobs">
+                      <Briefcase className="mr-2 h-4 w-4" />
+                      My Jobs
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/post-job">
+                      <Plus className="mr-2 h-4 w-4" />
+                      Post a Job
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Log out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <>
+                <Button variant="outline" size="sm" asChild>
+                  <Link href="/login">Login</Link>
+                </Button>
+                <Button size="sm" asChild>
+                  <Link href="/register">Sign Up</Link>
+                </Button>
+              </>
+            )}
           </nav>
 
           <div className="md:hidden">
@@ -75,18 +136,60 @@ export default function Navbar() {
             >
               Post a Job
             </Link>
-            <div className="flex flex-col space-y-2 pt-2">
-              <Button variant="outline" asChild>
-                <Link href="/login" onClick={() => setIsMenuOpen(false)}>
-                  Login
-                </Link>
-              </Button>
-              <Button asChild>
-                <Link href="/register" onClick={() => setIsMenuOpen(false)}>
-                  Sign Up
-                </Link>
-              </Button>
-            </div>
+
+            {isLoading ? (
+              <div className="h-8 w-full animate-pulse rounded bg-muted"></div>
+            ) : session ? (
+              <div className="border-t pt-4 mt-4">
+                <div className="flex items-center mb-4">
+                  <Avatar className="h-8 w-8 mr-2">
+                    <AvatarImage src="/placeholder.svg" alt={session.user.name} />
+                    <AvatarFallback>{session.user.name.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-medium">{session.user.name}</p>
+                    <p className="text-xs text-muted-foreground">{session.user.email}</p>
+                  </div>
+                </div>
+                <div className="flex flex-col space-y-2">
+                  <Button asChild variant="outline" size="sm">
+                    <Link href="/dashboard" onClick={() => setIsMenuOpen(false)}>
+                      <User className="mr-2 h-4 w-4" />
+                      Dashboard
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline" size="sm">
+                    <Link href="/dashboard/jobs" onClick={() => setIsMenuOpen(false)}>
+                      <Briefcase className="mr-2 h-4 w-4" />
+                      My Jobs
+                    </Link>
+                  </Button>
+                  <Button asChild size="sm">
+                    <Link href="/post-job" onClick={() => setIsMenuOpen(false)}>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Post a Job
+                    </Link>
+                  </Button>
+                  <Button variant="destructive" size="sm" onClick={handleSignOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Log out
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col space-y-2 pt-2">
+                <Button variant="outline" asChild>
+                  <Link href="/login" onClick={() => setIsMenuOpen(false)}>
+                    Login
+                  </Link>
+                </Button>
+                <Button asChild>
+                  <Link href="/register" onClick={() => setIsMenuOpen(false)}>
+                    Sign Up
+                  </Link>
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       )}
