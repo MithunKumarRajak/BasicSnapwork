@@ -5,7 +5,7 @@ import Link from "next/link"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { MapPin, Clock, DollarSign } from "lucide-react"
+import { MapPin, Clock, IndianRupee } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 
 interface Job {
@@ -30,6 +30,9 @@ export default function FeaturedJobs() {
     async function fetchJobs() {
       try {
         const response = await fetch("/api/jobs")
+        if (!response.ok) {
+          throw new Error("Failed to fetch jobs")
+        }
         const data = await response.json()
         setJobs(data)
       } catch (error) {
@@ -70,7 +73,7 @@ export default function FeaturedJobs() {
                   </CardFooter>
                 </Card>
               ))
-            : jobs.map((job) => (
+            : jobs.slice(0, 6).map((job) => (
                 <Card key={job._id} className="overflow-hidden">
                   <CardContent className="p-6">
                     <div className="mb-3 flex items-center justify-between">
@@ -87,7 +90,7 @@ export default function FeaturedJobs() {
                         {job.location}
                       </div>
                       <div className="flex items-center text-sm text-muted-foreground">
-                        <DollarSign className="mr-1 h-3 w-3" />${job.budget}
+                        <IndianRupee className="mr-1 h-3 w-3" />₹{job.budget.toLocaleString("en-IN")}
                       </div>
                     </div>
                     <p className="text-sm text-muted-foreground line-clamp-3">{job.description}</p>

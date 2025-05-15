@@ -13,14 +13,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast"
 
 const categories = [
+  { name: "Household Help", value: "household-help" },
+  { name: "Electrician", value: "electrician" },
+  { name: "Plumbing", value: "plumbing" },
+  { name: "Delivery", value: "delivery" },
+  { name: "Cooking", value: "cooking" },
+  { name: "Painting", value: "painting" },
+  { name: "Construction", value: "construction" },
+  { name: "Salon Services", value: "salon-services" },
   { name: "Web Development", value: "web-development" },
   { name: "Design", value: "design" },
   { name: "Writing", value: "writing" },
   { name: "Admin Support", value: "admin-support" },
-  { name: "Customer Service", value: "customer-service" },
-  { name: "Delivery", value: "delivery" },
-  { name: "Home Services", value: "home-services" },
-  { name: "Repairs", value: "repairs" },
 ]
 
 interface PostJobFormProps {
@@ -116,7 +120,7 @@ export default function PostJobForm({ userId }: PostJobFormProps) {
             <Input
               id="title"
               name="title"
-              placeholder="e.g., Website Developer Needed"
+              placeholder="e.g., Need Electrician for Home Repairs"
               value={formData.title}
               onChange={handleChange}
               required
@@ -158,14 +162,14 @@ export default function PostJobForm({ userId }: PostJobFormProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="budget">Budget ($)</Label>
+              <Label htmlFor="budget">Budget (₹)</Label>
               <Input
                 id="budget"
                 name="budget"
                 type="number"
-                min="1"
-                step="0.01"
-                placeholder="e.g., 500"
+                min="100"
+                step="100"
+                placeholder="e.g., 1000"
                 value={formData.budget}
                 onChange={handleChange}
                 required
@@ -178,7 +182,7 @@ export default function PostJobForm({ userId }: PostJobFormProps) {
             <Input
               id="location"
               name="location"
-              placeholder="e.g., New York, NY"
+              placeholder="e.g., Mumbai, Maharashtra"
               value={formData.location}
               onChange={handleChange}
               required
@@ -190,7 +194,7 @@ export default function PostJobForm({ userId }: PostJobFormProps) {
             <Input
               id="skills"
               name="skills"
-              placeholder="e.g., JavaScript, React, Node.js"
+              placeholder="e.g., Plumbing, Electrical, Carpentry"
               value={formData.skills}
               onChange={handleChange}
             />

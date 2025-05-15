@@ -9,10 +9,11 @@ export default function Hero() {
           <div className="flex flex-col justify-center space-y-4">
             <div className="space-y-2">
               <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
-                Find Work or Hire Talent in Minutes
+                Find Local Workers or Jobs in Minutes
               </h1>
               <p className="max-w-[600px] text-muted-foreground md:text-xl">
-                SnapWork connects you with local talent and opportunities. Post a job or find your next gig today.
+                SnapWork connects you with local talent for household tasks, repairs, deliveries and more across India.
+                Get things done quickly and affordably.
               </p>
             </div>
             <div className="flex flex-col gap-2 min-[400px]:flex-row">
@@ -29,7 +30,9 @@ export default function Hero() {
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="space-y-4 text-center">
                   <h3 className="text-2xl font-bold">Get Started Today</h3>
-                  <p className="text-muted-foreground">Join thousands of people finding work and talent on SnapWork</p>
+                  <p className="text-muted-foreground">
+                    Join thousands of people finding daily work and workers across India
+                  </p>
                   <Button asChild>
                     <Link href="/register">Create an Account</Link>
                   </Button>

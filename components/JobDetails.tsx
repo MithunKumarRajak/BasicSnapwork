@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
-import { MapPin, DollarSign, Calendar, User, Briefcase } from "lucide-react"
+import { MapPin, IndianRupee, Calendar, User, Briefcase } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
 interface JobProps {
@@ -77,7 +77,7 @@ export default function JobDetails({ job }: JobProps) {
                 {job.location}
               </div>
               <div className="flex items-center text-muted-foreground">
-                <DollarSign className="mr-1 h-4 w-4" />${job.budget}
+                <IndianRupee className="mr-1 h-4 w-4" />₹{job.budget.toLocaleString("en-IN")}
               </div>
               <div className="flex items-center text-muted-foreground">
                 <Calendar className="mr-1 h-4 w-4" />

@@ -38,7 +38,7 @@ export default async function DashboardJobsPage() {
         <Card>
           <CardContent className="p-6 text-center">
             <h3 className="text-lg font-semibold mb-2">You haven't posted any jobs yet</h3>
-            <p className="text-muted-foreground mb-4">Create your first job posting to find the perfect freelancer</p>
+            <p className="text-muted-foreground mb-4">Create your first job posting to find the perfect worker</p>
             <Button asChild>
               <Link href="/post-job">Post Your First Job</Link>
             </Button>
@@ -65,7 +65,7 @@ export default async function DashboardJobsPage() {
               <CardContent className="pb-2">
                 <p className="text-sm text-muted-foreground line-clamp-2">{job.description}</p>
                 <div className="mt-2">
-                  <p className="font-medium">Budget: ${job.budget}</p>
+                  <p className="font-medium">Budget: ₹{job.budget.toLocaleString("en-IN")}</p>
                   <p className="text-sm text-muted-foreground">Location: {job.location}</p>
                 </div>
               </CardContent>

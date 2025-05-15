@@ -13,21 +13,25 @@ import { Slider } from "@/components/ui/slider"
 
 const categories = [
   { name: "All Categories", value: "" },
+  { name: "Household Help", value: "household-help" },
+  { name: "Electrician", value: "electrician" },
+  { name: "Plumbing", value: "plumbing" },
+  { name: "Delivery", value: "delivery" },
+  { name: "Cooking", value: "cooking" },
+  { name: "Painting", value: "painting" },
+  { name: "Construction", value: "construction" },
+  { name: "Salon Services", value: "salon-services" },
   { name: "Web Development", value: "web-development" },
   { name: "Design", value: "design" },
   { name: "Writing", value: "writing" },
   { name: "Admin Support", value: "admin-support" },
-  { name: "Customer Service", value: "customer-service" },
-  { name: "Delivery", value: "delivery" },
-  { name: "Home Services", value: "home-services" },
-  { name: "Repairs", value: "repairs" },
 ]
 
 export default function JobFilters() {
   const router = useRouter()
   const [search, setSearch] = useState("")
   const [category, setCategory] = useState("")
-  const [budget, setBudget] = useState([500])
+  const [budget, setBudget] = useState([5000])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -42,7 +46,7 @@ export default function JobFilters() {
       params.append("category", category)
     }
 
-    if (budget[0] !== 500) {
+    if (budget[0] !== 5000) {
       params.append("budget", budget[0].toString())
     }
 
@@ -52,7 +56,7 @@ export default function JobFilters() {
   const handleReset = () => {
     setSearch("")
     setCategory("")
-    setBudget([500])
+    setBudget([5000])
     router.push("/jobs")
   }
 
@@ -82,11 +86,11 @@ export default function JobFilters() {
           </div>
 
           <div className="space-y-2">
-            <Label>Budget (up to ${budget[0]})</Label>
-            <Slider value={budget} min={100} max={10000} step={100} onValueChange={setBudget} />
+            <Label>Budget (up to ₹{budget[0]})</Label>
+            <Slider value={budget} min={500} max={50000} step={500} onValueChange={setBudget} />
             <div className="flex justify-between text-xs text-muted-foreground">
-              <span>$100</span>
-              <span>$10,000+</span>
+              <span>₹500</span>
+              <span>₹50,000+</span>
             </div>
           </div>
 
