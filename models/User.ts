@@ -8,6 +8,12 @@ export interface IUser extends Document {
   bio?: string
   skills?: string[]
   location?: string
+  phone?: string
+  isVerified: boolean
+  verificationDocuments?: string[]
+  verificationStatus: "unverified" | "pending" | "verified"
+  rating?: number
+  reviewCount?: number
   createdAt: Date
   updatedAt: Date
 }
@@ -21,6 +27,16 @@ const UserSchema: Schema = new Schema(
     bio: { type: String },
     skills: [{ type: String }],
     location: { type: String },
+    phone: { type: String },
+    isVerified: { type: Boolean, default: false },
+    verificationDocuments: [{ type: String }],
+    verificationStatus: {
+      type: String,
+      enum: ["unverified", "pending", "verified"],
+      default: "unverified",
+    },
+    rating: { type: Number, default: 0 },
+    reviewCount: { type: Number, default: 0 },
   },
   { timestamps: true },
 )

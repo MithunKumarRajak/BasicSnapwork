@@ -6,6 +6,8 @@ export interface IJob extends Document {
   category: string
   budget: number
   location: string
+  city?: string
+  state?: string
   skills: string[]
   postedBy: mongoose.Types.ObjectId
   status: "open" | "in-progress" | "completed"
@@ -21,6 +23,8 @@ const JobSchema: Schema = new Schema(
     category: { type: String, required: true },
     budget: { type: Number, required: true },
     location: { type: String, required: true },
+    city: { type: String },
+    state: { type: String },
     skills: [{ type: String }],
     postedBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
     status: { type: String, enum: ["open", "in-progress", "completed"], default: "open" },

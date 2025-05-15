@@ -4,7 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Briefcase, User, Settings, Plus, MessageSquare } from "lucide-react"
+import { Briefcase, User, Settings, Plus, MessageSquare, Shield } from "lucide-react"
 
 const navItems = [
   {
@@ -21,6 +21,11 @@ const navItems = [
     title: "Messages",
     href: "/dashboard/messages",
     icon: <MessageSquare className="mr-2 h-4 w-4" />,
+  },
+  {
+    title: "Verification",
+    href: "/dashboard/verification",
+    icon: <Shield className="mr-2 h-4 w-4" />,
   },
   {
     title: "Profile",

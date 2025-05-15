@@ -5,8 +5,9 @@ import Link from "next/link"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { MapPin, Clock, IndianRupee } from "lucide-react"
+import { MapPin, Clock, IndianRupee, User } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
+import VerificationBadge from "@/components/VerificationBadge"
 
 interface Job {
   _id: string
@@ -15,10 +16,14 @@ interface Job {
   category: string
   budget: number
   location: string
+  city?: string
+  state?: string
   createdAt: string
   postedBy: {
+    _id: string
     name: string
     profileImage?: string
+    verificationStatus?: "unverified" | "pending" | "verified"
   }
 }
 
@@ -34,7 +39,9 @@ export default function JobsList({
     async function fetchJobs() {
       try {
         const category = searchParams.category
-        const search = searchParams.search
+        const search = searchParams.q
+        const city = searchParams.city
+        const state = searchParams.state
 
         let url = "/api/jobs"
         const params = new URLSearchParams()
@@ -44,7 +51,15 @@ export default function JobsList({
         }
 
         if (search) {
-          params.append("search", search.toString())
+          params.append("q", search.toString())
+        }
+
+        if (city) {
+          params.append("city", city.toString())
+        }
+
+        if (state) {
+          params.append("state", state.toString())
         }
 
         if (params.toString()) {
@@ -122,13 +137,25 @@ export default function JobsList({
             <div className="mb-4 flex flex-wrap gap-2">
               <div className="flex items-center text-sm text-muted-foreground">
                 <MapPin className="mr-1 h-3 w-3" />
-                {job.location}
+                {job.city || ""}
+                {job.city && job.state && ", "}
+                {job.state || job.location}
               </div>
               <div className="flex items-center text-sm text-muted-foreground">
                 <IndianRupee className="mr-1 h-3 w-3" />₹{job.budget.toLocaleString("en-IN")}
               </div>
             </div>
             <p className="text-sm text-muted-foreground line-clamp-3">{job.description}</p>
+
+            <div className="mt-4 flex items-center text-sm">
+              <User className="mr-1 h-3 w-3 text-muted-foreground" />
+              <span className="text-muted-foreground">Posted by: {job.postedBy.name}</span>
+              {job.postedBy.verificationStatus && (
+                <span className="ml-1">
+                  <VerificationBadge status={job.postedBy.verificationStatus} size="sm" />
+                </span>
+              )}
+            </div>
           </CardContent>
           <CardFooter className="bg-secondary/50 p-6">
             <Button asChild className="w-full">

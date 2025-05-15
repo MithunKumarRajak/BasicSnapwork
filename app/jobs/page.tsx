@@ -1,12 +1,14 @@
+import { Card } from "@/components/ui/card"
 import JobsList from "@/components/JobsList"
 import JobFilters from "@/components/JobFilters"
+import LocationSearch from "@/components/LocationSearch"
 
 export const metadata = {
   title: "Browse Jobs - SnapWork",
   description: "Find the perfect job or gig on SnapWork",
 }
 
-export default function JobsPage({
+export default async function JobsPage({
   searchParams,
 }: {
   searchParams: { [key: string]: string | string[] | undefined }
@@ -16,7 +18,10 @@ export default function JobsPage({
       <h1 className="mb-6 text-3xl font-bold">Browse Jobs</h1>
 
       <div className="grid gap-6 md:grid-cols-4">
-        <div className="md:col-span-1">
+        <div className="md:col-span-1 space-y-6">
+          <Card className="p-4">
+            <LocationSearch />
+          </Card>
           <JobFilters />
         </div>
         <div className="md:col-span-3">

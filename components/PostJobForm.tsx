@@ -27,6 +27,37 @@ const categories = [
   { name: "Admin Support", value: "admin-support" },
 ]
 
+const states = [
+  "Andhra Pradesh",
+  "Arunachal Pradesh",
+  "Assam",
+  "Bihar",
+  "Chhattisgarh",
+  "Goa",
+  "Gujarat",
+  "Haryana",
+  "Himachal Pradesh",
+  "Jharkhand",
+  "Karnataka",
+  "Kerala",
+  "Madhya Pradesh",
+  "Maharashtra",
+  "Manipur",
+  "Meghalaya",
+  "Mizoram",
+  "Nagaland",
+  "Odisha",
+  "Punjab",
+  "Rajasthan",
+  "Sikkim",
+  "Tamil Nadu",
+  "Telangana",
+  "Tripura",
+  "Uttar Pradesh",
+  "Uttarakhand",
+  "West Bengal",
+]
+
 interface PostJobFormProps {
   userId: string
 }
@@ -41,6 +72,8 @@ export default function PostJobForm({ userId }: PostJobFormProps) {
     category: "",
     budget: "",
     location: "",
+    city: "",
+    state: "",
     skills: "",
   })
 
@@ -51,13 +84,37 @@ export default function PostJobForm({ userId }: PostJobFormProps) {
 
   const handleSelectChange = (name: string, value: string) => {
     setFormData((prev) => ({ ...prev, [name]: value }))
+
+    // Update location when city or state changes
+    if (name === "city" || name === "state") {
+      const newCity = name === "city" ? value : formData.city
+      const newState = name === "state" ? value : formData.state
+
+      let newLocation = ""
+      if (newCity && newState) {
+        newLocation = `${newCity}, ${newState}`
+      } else if (newCity) {
+        newLocation = newCity
+      } else if (newState) {
+        newLocation = newState
+      }
+
+      setFormData((prev) => ({ ...prev, location: newLocation }))
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     // Basic validation
-    if (!formData.title || !formData.description || !formData.category || !formData.budget || !formData.location) {
+    if (
+      !formData.title ||
+      !formData.description ||
+      !formData.category ||
+      !formData.budget ||
+      !formData.city ||
+      !formData.state
+    ) {
       toast({
         title: "Error",
         description: "Please fill in all required fields",
@@ -177,16 +234,34 @@ export default function PostJobForm({ userId }: PostJobFormProps) {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="location">Location</Label>
-            <Input
-              id="location"
-              name="location"
-              placeholder="e.g., Mumbai, Maharashtra"
-              value={formData.location}
-              onChange={handleChange}
-              required
-            />
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="city">City</Label>
+              <Input
+                id="city"
+                name="city"
+                placeholder="e.g., Mumbai"
+                value={formData.city}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="state">State</Label>
+              <Select value={formData.state} onValueChange={(value) => handleSelectChange("state", value)} required>
+                <SelectTrigger id="state">
+                  <SelectValue placeholder="Select state" />
+                </SelectTrigger>
+                <SelectContent>
+                  {states.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div className="space-y-2">
