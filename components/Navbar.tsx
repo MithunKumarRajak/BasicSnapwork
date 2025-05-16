@@ -26,12 +26,14 @@ export default function Navbar() {
   }
 
   return (
-    <header className="border-b">
+    <header className="border-b bg-white dark:bg-gray-950 sticky top-0 z-50 shadow-sm">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center">
             <Link href="/" className="flex items-center">
-              <span className="text-xl font-bold text-primary">SnapWork</span>
+              <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
+                SnapWork
+              </span>
             </Link>
           </div>
 
@@ -92,10 +94,15 @@ export default function Navbar() {
               </DropdownMenu>
             ) : (
               <>
-                <Button variant="outline" size="sm" asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  asChild
+                  className="border-primary/20 hover:bg-primary/10 hover:text-primary"
+                >
                   <Link href="/login">Login</Link>
                 </Button>
-                <Button size="sm" asChild>
+                <Button size="sm" asChild className="button-gradient">
                   <Link href="/register">Sign Up</Link>
                 </Button>
               </>
@@ -105,7 +112,7 @@ export default function Navbar() {
           <div className="md:hidden">
             <button
               type="button"
-              className="text-gray-500 hover:text-gray-600"
+              className="text-gray-500 hover:text-primary transition-colors"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
               {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}

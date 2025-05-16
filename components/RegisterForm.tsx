@@ -52,10 +52,10 @@ export default function RegisterForm() {
 
       toast({
         title: "Success",
-        description: "Your account has been created. You can now log in.",
+        description: "Your account has been created. You can now browse jobs.",
       })
 
-      router.push("/login")
+      router.push("/jobs")
     } catch (error) {
       toast({
         title: "Error",
