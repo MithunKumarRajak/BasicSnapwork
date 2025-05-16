@@ -47,7 +47,7 @@ export default function ProfileForm({ userId }: ProfileFormProps) {
           phone: data.phone || "",
           location: data.location || "",
           bio: data.bio || "",
-          skills: data.skills?.join(", ") || "",
+          skills: Array.isArray(data.skills) ? data.skills.join(", ") : "",
           profileImage: data.profileImage || "",
         })
       } catch (error) {
@@ -75,9 +75,6 @@ export default function ProfileForm({ userId }: ProfileFormProps) {
     setIsLoading(true)
 
     try {
-      // In a real app, you would upload the profile image to a storage service
-      // and then update the user's profile in the database
-
       const updatedProfile = {
         ...formData,
         skills: formData.skills

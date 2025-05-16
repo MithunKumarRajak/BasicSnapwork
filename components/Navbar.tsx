@@ -15,6 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 export default function Navbar() {
   const { data: session, status } = useSession()
@@ -51,6 +52,8 @@ export default function Navbar() {
             <Link href="/post-job" className="text-sm font-medium hover:text-primary">
               Post a Job
             </Link>
+
+            <ThemeToggle />
 
             {isLoading ? (
               <div className="h-8 w-24 animate-pulse rounded bg-muted"></div>
@@ -143,6 +146,10 @@ export default function Navbar() {
             >
               Post a Job
             </Link>
+
+            <div className="py-2">
+              <ThemeToggle />
+            </div>
 
             {isLoading ? (
               <div className="h-8 w-full animate-pulse rounded bg-muted"></div>

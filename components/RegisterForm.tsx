@@ -10,6 +10,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { useToast } from "@/hooks/use-toast"
+import { createUser } from "@/lib/db-utils"
+import { signIn } from "next-auth/react"
 
 export default function RegisterForm() {
   const router = useRouter()
@@ -21,6 +23,7 @@ export default function RegisterForm() {
     password: "",
     role: "user",
   })
+  const [error, setError] = useState("")
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -34,35 +37,44 @@ export default function RegisterForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setError("")
+
+    const { name, email, password, role: accountType } = formData
+    const confirmPassword = formData.password // Assuming confirm password is same as password for now
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match")
+      setIsLoading(false)
+      return
+    }
 
     try {
-      const response = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
+      // Create user in the database
+      await createUser({
+        name,
+        email,
+        password,
+        role: accountType,
       })
 
-      const data = await response.json()
+      // Sign in the user
+      const result = await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
+      })
 
-      if (!response.ok) {
-        throw new Error(data.message || "Registration failed")
+      if (result?.error) {
+        setError(result.error)
+        setIsLoading(false)
+        return
       }
 
-      toast({
-        title: "Success",
-        description: "Your account has been created. You can now browse jobs.",
-      })
-
+      // Redirect to jobs page after successful registration
       router.push("/jobs")
     } catch (error) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Something went wrong. Please try again.",
-        variant: "destructive",
-      })
-    } finally {
+      console.error("Registration error:", error)
+      setError(error instanceof Error ? error.message : "Registration failed. Please try again.")
       setIsLoading(false)
     }
   }
@@ -110,6 +122,7 @@ export default function RegisterForm() {
           </div>
         </RadioGroup>
       </div>
+      {error && <p className="text-red-500">{error}</p>}
       <Button type="submit" className="w-full" disabled={isLoading}>
         {isLoading ? "Creating account..." : "Create Account"}
       </Button>

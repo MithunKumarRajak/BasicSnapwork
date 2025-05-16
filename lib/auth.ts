@@ -1,8 +1,6 @@
 import type { NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
-import { compare } from "bcryptjs"
-import dbConnect from "@/lib/db"
-import User from "@/models/User"
+import { verifyUserCredentials } from "@/lib/db-utils"
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -17,27 +15,20 @@ export const authOptions: NextAuthOptions = {
           return null
         }
 
-        await dbConnect()
-
         try {
-          const user = await User.findOne({ email: credentials.email })
+          const user = await verifyUserCredentials(credentials.email, credentials.password)
 
           if (!user) {
             return null
           }
 
-          const isPasswordValid = await compare(credentials.password, user.password)
-
-          if (!isPasswordValid) {
-            return null
-          }
-
           return {
-            id: user._id.toString(),
+            id: user.id,
             name: user.name,
             email: user.email,
             profileImage: user.profileImage,
-            role: user.role || "user",
+            role: user.role,
+            verificationStatus: user.verificationStatus,
           }
         } catch (error) {
           console.error("Authentication error:", error)
@@ -52,6 +43,7 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id
         token.role = user.role
         token.profileImage = user.profileImage
+        token.verificationStatus = user.verificationStatus
       }
       return token
     },
@@ -60,6 +52,7 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id as string
         session.user.role = token.role as string
         session.user.profileImage = token.profileImage as string | undefined
+        session.user.verificationStatus = token.verificationStatus as string | undefined
       }
       return session
     },

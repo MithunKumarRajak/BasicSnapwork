@@ -27,6 +27,112 @@ interface Job {
   }
 }
 
+// Demo jobs data
+const demoJobs: Job[] = [
+  {
+    _id: "demo1",
+    title: "Electrician needed for house wiring",
+    description:
+      "Need an experienced electrician to fix wiring issues in a 2BHK apartment. Must have 3+ years of experience and own tools.",
+    category: "Electrician",
+    budget: 1500,
+    location: "Mumbai",
+    city: "Mumbai",
+    state: "Maharashtra",
+    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
+    postedBy: {
+      _id: "user1",
+      name: "Rahul Sharma",
+      verificationStatus: "verified",
+    },
+  },
+  {
+    _id: "demo2",
+    title: "Plumber for bathroom renovation",
+    description:
+      "Looking for a skilled plumber to install new fixtures in bathroom renovation project. Work expected to take 2 days.",
+    category: "Plumber",
+    budget: 2000,
+    location: "Delhi",
+    city: "Delhi",
+    state: "Delhi",
+    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
+    postedBy: {
+      _id: "user2",
+      name: "Priya Patel",
+      verificationStatus: "verified",
+    },
+  },
+  {
+    _id: "demo3",
+    title: "Carpenter needed for furniture assembly",
+    description:
+      "Need a carpenter to assemble 3 wardrobes and 2 beds. All materials will be provided. Looking for someone who can start immediately.",
+    category: "Carpenter",
+    budget: 1200,
+    location: "Bangalore",
+    city: "Bangalore",
+    state: "Karnataka",
+    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
+    postedBy: {
+      _id: "user3",
+      name: "Amit Kumar",
+      verificationStatus: "pending",
+    },
+  },
+  {
+    _id: "demo4",
+    title: "House cleaning service required",
+    description:
+      "Need thorough cleaning of 3BHK apartment including kitchen and bathrooms. Regular weekly service possible for the right candidate.",
+    category: "Cleaning",
+    budget: 800,
+    location: "Hyderabad",
+    city: "Hyderabad",
+    state: "Telangana",
+    createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(), // 12 hours ago
+    postedBy: {
+      _id: "user4",
+      name: "Sneha Reddy",
+      verificationStatus: "unverified",
+    },
+  },
+  {
+    _id: "demo5",
+    title: "Painter for 2BHK apartment",
+    description:
+      "Looking for an experienced painter to paint a 2BHK apartment. Need to finish within 3 days. Paint will be provided.",
+    category: "Painter",
+    budget: 5000,
+    location: "Chennai",
+    city: "Chennai",
+    state: "Tamil Nadu",
+    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
+    postedBy: {
+      _id: "user5",
+      name: "Karthik Rajan",
+      verificationStatus: "verified",
+    },
+  },
+  {
+    _id: "demo6",
+    title: "Gardener needed for lawn maintenance",
+    description:
+      "Need a gardener for regular maintenance of home garden. Tasks include mowing, trimming, and planting seasonal flowers.",
+    category: "Gardening",
+    budget: 600,
+    location: "Pune",
+    city: "Pune",
+    state: "Maharashtra",
+    createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(), // 6 hours ago
+    postedBy: {
+      _id: "user6",
+      name: "Vikram Desai",
+      verificationStatus: "pending",
+    },
+  },
+]
+
 export default function JobsList({
   searchParams,
 }: {
@@ -38,42 +144,40 @@ export default function JobsList({
   useEffect(() => {
     async function fetchJobs() {
       try {
-        const category = searchParams.category
-        const search = searchParams.q
-        const city = searchParams.city
-        const state = searchParams.state
+        setLoading(true)
 
-        let url = "/api/jobs"
-        const params = new URLSearchParams()
+        // Filter demo jobs based on search parameters
+        let filteredJobs = [...demoJobs]
 
-        if (category) {
-          params.append("category", category.toString())
+        // Apply category filter
+        if (searchParams.category) {
+          const category = searchParams.category.toString()
+          filteredJobs = filteredJobs.filter((job) => job.category.toLowerCase() === category.toLowerCase())
         }
 
-        if (search) {
-          params.append("q", search.toString())
+        // Apply search query filter
+        if (searchParams.q) {
+          const query = searchParams.q.toString().toLowerCase()
+          filteredJobs = filteredJobs.filter(
+            (job) => job.title.toLowerCase().includes(query) || job.description.toLowerCase().includes(query),
+          )
         }
 
-        if (city) {
-          params.append("city", city.toString())
+        // Apply city filter
+        if (searchParams.city) {
+          const city = searchParams.city.toString().toLowerCase()
+          filteredJobs = filteredJobs.filter((job) => job.city?.toLowerCase().includes(city))
         }
 
-        if (state) {
-          params.append("state", state.toString())
+        // Apply state filter
+        if (searchParams.state) {
+          const state = searchParams.state.toString().toLowerCase()
+          filteredJobs = filteredJobs.filter((job) => job.state?.toLowerCase().includes(state))
         }
 
-        if (params.toString()) {
-          url += `?${params.toString()}`
-        }
-
-        const response = await fetch(url)
-        if (!response.ok) {
-          throw new Error("Failed to fetch jobs")
-        }
-        const data = await response.json()
-        setJobs(data)
+        setJobs(filteredJobs)
       } catch (error) {
-        console.error("Error fetching jobs:", error)
+        console.error("Error processing jobs:", error)
       } finally {
         setLoading(false)
       }

@@ -4,61 +4,62 @@ import { Button } from "@/components/ui/button"
 
 export const metadata = {
   title: "Pricing - SnapWork",
-  description: "Affordable pricing plans for posting jobs on SnapWork",
+  description: "SnapWork is completely free for all users - post and find jobs at no cost",
 }
 
 const pricingPlans = [
   {
-    name: "Basic",
-    price: "₹499",
-    duration: "per month",
-    description: "Perfect for occasional job postings",
+    name: "Free",
+    price: "₹0",
+    duration: "forever",
+    description: "Everything you need to get started",
     features: [
-      "Post up to 5 jobs per month",
+      "Post unlimited jobs",
+      "Apply to unlimited jobs",
       "Basic worker verification",
       "Standard support",
-      "7-day job listings",
+      "30-day job listings",
       "Email notifications",
-    ],
-    highlighted: false,
-    buttonText: "Get Started",
-    buttonVariant: "outline",
-  },
-  {
-    name: "Professional",
-    price: "₹1,499",
-    duration: "per month",
-    description: "Ideal for regular employers",
-    features: [
-      "Post up to 20 jobs per month",
-      "Advanced worker verification",
-      "Priority support",
-      "14-day job listings",
-      "Featured job listings",
-      "Email and SMS notifications",
-      "Access to premium workers",
+      "Create detailed profiles",
     ],
     highlighted: true,
-    buttonText: "Most Popular",
+    buttonText: "Get Started",
     buttonVariant: "default",
   },
   {
-    name: "Enterprise",
-    price: "₹3,999",
-    duration: "per month",
-    description: "For businesses with high volume needs",
+    name: "Premium Worker",
+    price: "Coming Soon",
+    duration: "optional",
+    description: "Enhanced features for serious workers",
     features: [
-      "Unlimited job postings",
-      "Premium worker verification",
-      "24/7 dedicated support",
-      "30-day job listings",
-      "Featured and promoted listings",
-      "All notification channels",
-      "Dedicated account manager",
-      "Custom branding options",
+      "Verified badge on profile",
+      "Priority in search results",
+      "Advanced analytics",
+      "Priority support",
+      "Featured profile",
+      "Early access to new jobs",
+      "Professional profile templates",
     ],
     highlighted: false,
-    buttonText: "Contact Sales",
+    buttonText: "Join Waitlist",
+    buttonVariant: "outline",
+  },
+  {
+    name: "Premium Employer",
+    price: "Coming Soon",
+    duration: "optional",
+    description: "For businesses with high volume needs",
+    features: [
+      "Featured job listings",
+      "Premium worker access",
+      "Advanced filtering",
+      "Priority support",
+      "Dedicated account manager",
+      "Custom branding options",
+      "Detailed analytics",
+    ],
+    highlighted: false,
+    buttonText: "Join Waitlist",
     buttonVariant: "outline",
   },
 ]
@@ -68,10 +69,14 @@ export default function PricingPage() {
     <div className="container mx-auto px-4 py-12 md:px-6 lg:px-8">
       <div className="text-center max-w-3xl mx-auto mb-12">
         <h1 className="text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
-          Simple, Transparent Pricing
+          SnapWork is 100% Free
         </h1>
-        <p className="text-xl text-gray-600 dark:text-gray-300">
-          Choose the plan that works best for your hiring needs
+        <p className="text-xl text-gray-600 dark:text-gray-300 mb-4">
+          Connect workers and employers without any fees or commissions
+        </p>
+        <p className="text-gray-600 dark:text-gray-300">
+          We believe in providing equal opportunities for everyone. That's why SnapWork is and will always remain free
+          for all users.
         </p>
       </div>
 
@@ -123,13 +128,13 @@ export default function PricingPage() {
       </div>
 
       <div className="mt-16 text-center max-w-3xl mx-auto">
-        <h2 className="text-2xl font-bold mb-4">Need a custom solution?</h2>
+        <h2 className="text-2xl font-bold mb-4">How do we keep SnapWork free?</h2>
         <p className="text-gray-600 dark:text-gray-300 mb-6">
-          We offer tailored packages for businesses with specific requirements. Our team will work with you to create a
-          custom plan that fits your needs.
+          SnapWork is committed to providing a free platform for all users. We're currently exploring optional premium
+          features that will help sustain our platform while keeping the core functionality completely free.
         </p>
         <Button asChild size="lg">
-          <Link href="/contact">Contact Our Sales Team</Link>
+          <Link href="/contact">Have Questions? Contact Us</Link>
         </Button>
       </div>
     </div>
