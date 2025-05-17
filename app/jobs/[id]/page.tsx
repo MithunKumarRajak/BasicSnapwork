@@ -1,7 +1,10 @@
 import { notFound } from "next/navigation"
+import { getServerSession } from "next-auth/next"
 import JobDetails from "@/components/JobDetails"
 import dbConnect from "@/lib/db"
 import Job from "@/models/Job"
+import Application from "@/models/Application"
+import { authOptions } from "@/lib/auth"
 
 export async function generateMetadata({ params }: { params: { id: string } }) {
   await dbConnect()
@@ -32,14 +35,27 @@ export default async function JobPage({ params }: { params: { id: string } }) {
   await dbConnect()
 
   try {
-    const job = await Job.findById(params.id).populate("postedBy", "name profileImage")
+    const job = await Job.findById(params.id).populate("postedBy", "name profileImage verificationStatus")
 
     if (!job) {
       notFound()
     }
 
-    return <JobDetails job={JSON.parse(JSON.stringify(job))} />
+    // Check if the current user has already applied
+    const session = await getServerSession(authOptions)
+    let hasApplied = false
+
+    if (session) {
+      const application = await Application.findOne({
+        jobId: params.id,
+        applicantId: session.user.id,
+      })
+      hasApplied = !!application
+    }
+
+    return <JobDetails job={JSON.parse(JSON.stringify(job))} hasApplied={hasApplied} />
   } catch (error) {
+    console.error("Error fetching job:", error)
     notFound()
   }
 }

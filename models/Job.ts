@@ -10,10 +10,13 @@ export interface IJob extends Document {
   state?: string
   skills: string[]
   postedBy: mongoose.Types.ObjectId
-  status: "open" | "in-progress" | "completed"
+  status: "open" | "in-progress" | "completed" | "closed"
   applicants?: mongoose.Types.ObjectId[]
+  applications?: mongoose.Types.ObjectId[]
   createdAt: Date
   updatedAt: Date
+  deadline?: Date
+  hiredApplicant?: mongoose.Types.ObjectId
 }
 
 const JobSchema: Schema = new Schema(
@@ -27,8 +30,15 @@ const JobSchema: Schema = new Schema(
     state: { type: String },
     skills: [{ type: String }],
     postedBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    status: { type: String, enum: ["open", "in-progress", "completed"], default: "open" },
+    status: {
+      type: String,
+      enum: ["open", "in-progress", "completed", "closed"],
+      default: "open",
+    },
     applicants: [{ type: Schema.Types.ObjectId, ref: "User" }],
+    applications: [{ type: Schema.Types.ObjectId, ref: "Application" }],
+    deadline: { type: Date },
+    hiredApplicant: { type: Schema.Types.ObjectId, ref: "User" },
   },
   { timestamps: true },
 )
