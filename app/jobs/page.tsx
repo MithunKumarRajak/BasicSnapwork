@@ -1,4 +1,3 @@
-import { Card } from "@/components/ui/card"
 import JobsList from "@/components/JobsList"
 import JobFilters from "@/components/JobFilters"
 import LocationSearch from "@/components/LocationSearch"
@@ -17,9 +16,9 @@ export default async function JobsPage({
     <div className="container mx-auto px-4 py-8 md:px-6 lg:px-8">
       <h1 className="mb-6 text-3xl font-bold">Browse Jobs</h1>
 
-      <Card className="mb-6 p-4">
+      <div className="mb-6">
         <LocationSearch />
-      </Card>
+      </div>
 
       <div className="grid gap-6 md:grid-cols-4">
         <div className="md:col-span-1 space-y-6">
