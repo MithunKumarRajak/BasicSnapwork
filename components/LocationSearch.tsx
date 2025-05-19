@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+
 import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -80,7 +81,6 @@ export default function LocationSearch() {
   const [state, setState] = useState(searchParams.get("state") || "")
   const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "")
   const [locationSelected, setLocationSelected] = useState(Boolean(city || state))
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
   const [nearbyCities, setNearbyCities] = useState<string[]>([])
   const [isLocating, setIsLocating] = useState(false)
   const [showFullSearch, setShowFullSearch] = useState(false)
@@ -134,7 +134,6 @@ export default function LocationSearch() {
             lat: position.coords.latitude,
             lng: position.coords.longitude,
           }
-          setUserLocation(userCoords)
 
           // Find nearby cities based on coordinates
           const nearby = findNearbyCities(userCoords)

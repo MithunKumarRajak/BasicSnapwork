@@ -54,4 +54,7 @@ async function dbConnect() {
   return cached.conn
 }
 
+// Add the named export that's being referenced elsewhere
+export const connectToDatabase = dbConnect
+
 export default dbConnect

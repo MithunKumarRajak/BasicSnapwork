@@ -41,4 +41,10 @@ const UserSchema: Schema = new Schema(
   { timestamps: true },
 )
 
-export default mongoose.models.User || mongoose.model<IUser>("User", UserSchema)
+// Check if the model is already defined to prevent overwriting during hot reloads
+const User = mongoose.models.User || mongoose.model<IUser>("User", UserSchema)
+
+// Add the named export that's being referenced elsewhere
+export { User }
+
+export default User

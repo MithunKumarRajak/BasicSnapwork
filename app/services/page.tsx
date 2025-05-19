@@ -2,8 +2,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Slider } from "@/components/ui/slider"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Card, CardContent } from "@/components/ui/card"
 import ServiceCard from "@/components/service-card"
-import { Search } from "lucide-react"
+import { Search, Filter, Star } from "lucide-react"
 import { getServices, getCategories } from "@/lib/db-service"
 
 export default async function ServicesPage({
@@ -40,62 +42,122 @@ export default async function ServicesPage({
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-8">
         <div className="md:col-span-1 space-y-6">
-          <div className="border rounded-lg p-4 space-y-4">
-            <h2 className="font-semibold text-lg">Filters</h2>
-
-            <div className="space-y-2">
-              <h3 className="text-sm font-medium">Category</h3>
-              <Select defaultValue={category || "all"}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All Categories" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat._id?.toString()} value={cat.slug}>
-                      {cat.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <h3 className="text-sm font-medium">Price Range</h3>
-              <Slider defaultValue={[500]} max={2000} step={100} />
+          <Card>
+            <CardContent className="p-6 space-y-6">
               <div className="flex items-center justify-between">
-                <span className="text-sm">₹0</span>
-                <span className="text-sm">₹2000+</span>
+                <h2 className="font-semibold text-lg">Filters</h2>
+                <Button variant="ghost" size="sm" className="h-8 text-xs">
+                  Reset All
+                </Button>
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <h3 className="text-sm font-medium">Rating</h3>
-              <Select defaultValue="any">
-                <SelectTrigger>
-                  <SelectValue placeholder="Any Rating" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="any">Any Rating</SelectItem>
-                  <SelectItem value="4plus">4+ Stars</SelectItem>
-                  <SelectItem value="3plus">3+ Stars</SelectItem>
-                  <SelectItem value="2plus">2+ Stars</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <h3 className="text-sm font-medium flex items-center">
+                    <Filter className="h-4 w-4 mr-2" />
+                    Category
+                  </h3>
+                  <Select defaultValue={category || "all"}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All Categories" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Categories</SelectItem>
+                      {categories.map((cat) => (
+                        <SelectItem key={cat._id?.toString()} value={cat.slug}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            <Button className="w-full">Apply Filters</Button>
-          </div>
+                <div className="space-y-2">
+                  <h3 className="text-sm font-medium">Price Range</h3>
+                  <div className="pt-2">
+                    <Slider defaultValue={[0, 2000]} max={5000} step={100} />
+                    <div className="flex items-center justify-between mt-2">
+                      <div className="bg-background border rounded-md px-2 py-1 text-sm">₹0</div>
+                      <div className="bg-background border rounded-md px-2 py-1 text-sm">₹5000+</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <h3 className="text-sm font-medium flex items-center">
+                    <Star className="h-4 w-4 mr-2" />
+                    Rating
+                  </h3>
+                  <div className="space-y-2">
+                    {[5, 4, 3, 2, 1].map((rating) => (
+                      <div key={rating} className="flex items-center space-x-2">
+                        <Checkbox id={`rating-${rating}`} />
+                        <label htmlFor={`rating-${rating}`} className="text-sm flex items-center cursor-pointer">
+                          {Array(rating)
+                            .fill(0)
+                            .map((_, i) => (
+                              <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                            ))}
+                          {Array(5 - rating)
+                            .fill(0)
+                            .map((_, i) => (
+                              <Star key={i} className="h-4 w-4 text-gray-300" />
+                            ))}
+                          <span className="ml-1">{rating}+ & up</span>
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <h3 className="text-sm font-medium">Availability</h3>
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox id="available-now" />
+                      <label htmlFor="available-now" className="text-sm cursor-pointer">
+                        Available Now
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox id="weekend" />
+                      <label htmlFor="weekend" className="text-sm cursor-pointer">
+                        Weekend Availability
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <Button className="w-full">Apply Filters</Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         <div className="md:col-span-3 space-y-6">
-          <div className="flex items-center space-x-2">
-            <Input placeholder="Search services..." className="flex-1" />
-            <Button type="submit" size="icon">
-              <Search className="h-4 w-4" />
-              <span className="sr-only">Search</span>
-            </Button>
-          </div>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input placeholder="Search services..." className="pl-8" />
+                </div>
+                <Select defaultValue="relevance">
+                  <SelectTrigger className="w-full sm:w-[180px]">
+                    <SelectValue placeholder="Sort by" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="relevance">Relevance</SelectItem>
+                    <SelectItem value="price-low">Price: Low to High</SelectItem>
+                    <SelectItem value="price-high">Price: High to Low</SelectItem>
+                    <SelectItem value="rating">Highest Rated</SelectItem>
+                    <SelectItem value="newest">Newest First</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button type="submit">Search</Button>
+              </div>
+            </CardContent>
+          </Card>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {services.length > 0 ? (
