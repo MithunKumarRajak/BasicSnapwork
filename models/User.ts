@@ -1,50 +1,60 @@
-import mongoose, { Schema, type Document } from "mongoose"
+// Mark this file as server-only to prevent client imports
+import "server-only"
 
-export interface IUser extends Document {
-  name: string
-  email: string
-  password: string
-  profileImage?: string
-  bio?: string
-  skills?: string[]
-  location?: string
-  phone?: string
-  isVerified: boolean
-  verificationDocuments?: string[]
-  verificationStatus: "unverified" | "pending" | "verified"
-  rating?: number
-  reviewCount?: number
-  createdAt: Date
-  updatedAt: Date
-}
+import mongoose, { Schema } from "mongoose"
+import type { IUser } from "@/types/next-auth"
 
-const UserSchema: Schema = new Schema(
-  {
-    name: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
-    profileImage: { type: String },
-    bio: { type: String },
-    skills: [{ type: String }],
-    location: { type: String },
-    phone: { type: String },
-    isVerified: { type: Boolean, default: false },
-    verificationDocuments: [{ type: String }],
-    verificationStatus: {
-      type: String,
-      enum: ["unverified", "pending", "verified"],
-      default: "unverified",
-    },
-    rating: { type: Number, default: 0 },
-    reviewCount: { type: Number, default: 0 },
+const UserSchema = new Schema<IUser>({
+  name: {
+    type: String,
+    required: [true, "Please provide a name"],
   },
-  { timestamps: true },
-)
+  email: {
+    type: String,
+    required: [true, "Please provide an email"],
+    unique: true,
+  },
+  password: {
+    type: String,
+  },
+  image: {
+    type: String,
+  },
+  role: {
+    type: String,
+    enum: ["user", "worker", "employer", "admin"],
+    default: "user",
+  },
+  isVerified: {
+    type: Boolean,
+    default: false,
+  },
+  verificationDocuments: {
+    idProof: String,
+    addressProof: String,
+    professionalCertificate: String,
+  },
+  location: {
+    city: String,
+    state: String,
+    address: String,
+  },
+  skills: [String],
+  bio: String,
+  phone: String,
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now,
+  },
+})
 
-// Check if the model is already defined to prevent overwriting during hot reloads
+// Create the User model
 const User = mongoose.models.User || mongoose.model<IUser>("User", UserSchema)
 
-// Add the named export that's being referenced elsewhere
+// Export as both default and named export
 export { User }
-
 export default User

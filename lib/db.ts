@@ -1,3 +1,6 @@
+// Mark this file as server-only to prevent client imports
+import "server-only"
+
 import mongoose from "mongoose"
 
 const MONGODB_URI = process.env.MONGODB_URI
@@ -25,36 +28,23 @@ async function dbConnect() {
   if (!cached.promise) {
     const opts = {
       bufferCommands: false,
-      serverSelectionTimeoutMS: 30000, // Increased timeout
-      socketTimeoutMS: 45000,
-      family: 4, // Use IPv4, skip trying IPv6
     }
 
-    cached.promise = mongoose
-      .connect(MONGODB_URI!, opts)
-      .then((mongoose) => {
-        console.log("Connected to MongoDB")
-        return mongoose
-      })
-      .catch((err) => {
-        console.error("MongoDB connection error:", err)
-        cached.promise = null
-        throw err
-      })
+    cached.promise = mongoose.connect(MONGODB_URI!, opts).then((mongoose) => {
+      return mongoose
+    })
   }
 
   try {
     cached.conn = await cached.promise
   } catch (e) {
     cached.promise = null
-    console.error("Failed to connect to MongoDB:", e)
     throw e
   }
 
   return cached.conn
 }
 
-// Add the named export that's being referenced elsewhere
 export const connectToDatabase = dbConnect
 
 export default dbConnect

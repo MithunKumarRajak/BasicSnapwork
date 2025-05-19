@@ -1,37 +1,61 @@
+// Mark this file as server-only to prevent client imports
+import "server-only"
+
 import mongoose, { Schema, type Document } from "mongoose"
+import type { ObjectId } from "mongodb"
 
 export interface IApplication extends Document {
-  jobId: mongoose.Types.ObjectId
-  applicantId: mongoose.Types.ObjectId
+  jobId: ObjectId
+  applicantId: ObjectId
   coverLetter: string
-  expectedRate?: number
+  expectedRate: number
   availability: string
-  status: "pending" | "shortlisted" | "accepted" | "rejected"
-  attachments?: string[]
-  notes?: string
+  status: "pending" | "shortlisted" | "accepted" | "rejected" | "withdrawn"
+  employerNotes?: string
   createdAt: Date
   updatedAt: Date
 }
 
-const ApplicationSchema: Schema = new Schema(
-  {
-    jobId: { type: Schema.Types.ObjectId, ref: "Job", required: true },
-    applicantId: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    coverLetter: { type: String, required: true },
-    expectedRate: { type: Number },
-    availability: { type: String, required: true },
-    status: {
-      type: String,
-      enum: ["pending", "shortlisted", "accepted", "rejected"],
-      default: "pending",
-    },
-    attachments: [{ type: String }],
-    notes: { type: String },
+const ApplicationSchema = new Schema<IApplication>({
+  jobId: {
+    type: Schema.Types.ObjectId,
+    ref: "Job",
+    required: [true, "Please provide a job ID"],
   },
-  { timestamps: true },
-)
+  applicantId: {
+    type: Schema.Types.ObjectId,
+    ref: "User",
+    required: [true, "Please provide an applicant ID"],
+  },
+  coverLetter: {
+    type: String,
+    required: [true, "Please provide a cover letter"],
+  },
+  expectedRate: {
+    type: Number,
+    required: [true, "Please provide an expected rate"],
+  },
+  availability: {
+    type: String,
+    required: [true, "Please provide availability information"],
+  },
+  status: {
+    type: String,
+    enum: ["pending", "shortlisted", "accepted", "rejected", "withdrawn"],
+    default: "pending",
+  },
+  employerNotes: String,
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now,
+  },
+})
 
-// Create a compound index to prevent duplicate applications
-ApplicationSchema.index({ jobId: 1, applicantId: 1 }, { unique: true })
+// Create the Application model
+const Application = mongoose.models.Application || mongoose.model<IApplication>("Application", ApplicationSchema)
 
-export default mongoose.models.Application || mongoose.model<IApplication>("Application", ApplicationSchema)
+export default Application

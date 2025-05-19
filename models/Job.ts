@@ -1,46 +1,99 @@
+// Mark this file as server-only to prevent client imports
+import "server-only"
+
 import mongoose, { Schema, type Document } from "mongoose"
+import type { ObjectId } from "mongodb"
 
 export interface IJob extends Document {
   title: string
   description: string
   category: string
-  budget: number
-  location: string
-  city?: string
-  state?: string
+  budget: {
+    min: number
+    max: number
+  }
+  location: {
+    city: string
+    state: string
+    address?: string
+  }
   skills: string[]
-  postedBy: mongoose.Types.ObjectId
-  status: "open" | "in-progress" | "completed" | "closed"
-  applicants?: mongoose.Types.ObjectId[]
-  applications?: mongoose.Types.ObjectId[]
+  duration: string
+  postedBy: ObjectId
+  status: "open" | "in-progress" | "completed" | "cancelled"
+  applications: ObjectId[]
+  hiredApplicant?: ObjectId
   createdAt: Date
   updatedAt: Date
-  deadline?: Date
-  hiredApplicant?: mongoose.Types.ObjectId
 }
 
-const JobSchema: Schema = new Schema(
-  {
-    title: { type: String, required: true },
-    description: { type: String, required: true },
-    category: { type: String, required: true },
-    budget: { type: Number, required: true },
-    location: { type: String, required: true },
-    city: { type: String },
-    state: { type: String },
-    skills: [{ type: String }],
-    postedBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    status: {
-      type: String,
-      enum: ["open", "in-progress", "completed", "closed"],
-      default: "open",
-    },
-    applicants: [{ type: Schema.Types.ObjectId, ref: "User" }],
-    applications: [{ type: Schema.Types.ObjectId, ref: "Application" }],
-    deadline: { type: Date },
-    hiredApplicant: { type: Schema.Types.ObjectId, ref: "User" },
+const JobSchema = new Schema<IJob>({
+  title: {
+    type: String,
+    required: [true, "Please provide a job title"],
   },
-  { timestamps: true },
-)
+  description: {
+    type: String,
+    required: [true, "Please provide a job description"],
+  },
+  category: {
+    type: String,
+    required: [true, "Please provide a job category"],
+  },
+  budget: {
+    min: {
+      type: Number,
+      required: [true, "Please provide a minimum budget"],
+    },
+    max: {
+      type: Number,
+      required: [true, "Please provide a maximum budget"],
+    },
+  },
+  location: {
+    city: {
+      type: String,
+      required: [true, "Please provide a city"],
+    },
+    state: {
+      type: String,
+      required: [true, "Please provide a state"],
+    },
+    address: String,
+  },
+  skills: [String],
+  duration: String,
+  postedBy: {
+    type: Schema.Types.ObjectId,
+    ref: "User",
+    required: [true, "Please provide a user ID"],
+  },
+  status: {
+    type: String,
+    enum: ["open", "in-progress", "completed", "cancelled"],
+    default: "open",
+  },
+  applications: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "Application",
+    },
+  ],
+  hiredApplicant: {
+    type: Schema.Types.ObjectId,
+    ref: "User",
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now,
+  },
+})
 
-export default mongoose.models.Job || mongoose.model<IJob>("Job", JobSchema)
+// Create the Job model
+const Job = mongoose.models.Job || mongoose.model<IJob>("Job", JobSchema)
+
+export default Job
