@@ -1,60 +1,75 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth/next"
-import { authOptions } from "@/lib/auth"
+import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 import dbConnect from "@/lib/db"
 import Job from "@/models/Job"
+import { ObjectId } from "mongodb"
 
-export async function GET(req: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
-    await dbConnect()
+    const { searchParams } = new URL(request.url)
 
-    const { searchParams } = new URL(req.url)
+    // Parse query parameters
     const category = searchParams.get("category")
-    const search = searchParams.get("q")
     const city = searchParams.get("city")
     const state = searchParams.get("state")
+    const q = searchParams.get("q")
+    const page = searchParams.get("page") ? Number.parseInt(searchParams.get("page")!) : 1
+    const limit = searchParams.get("limit") ? Number.parseInt(searchParams.get("limit")!) : 10
+    const skip = (page - 1) * limit
 
+    // Build query
     const query: any = {}
 
     if (category) {
       query.category = category
     }
 
-    if (search) {
-      query.$or = [{ title: { $regex: search, $options: "i" } }, { description: { $regex: search, $options: "i" } }]
+    if (city) {
+      query["location.city"] = city
     }
 
-    // Add location filtering
-    if (city || state) {
-      const locationQuery: any = {}
-
-      if (city) {
-        locationQuery.city = { $regex: city, $options: "i" }
-      }
-
-      if (state) {
-        locationQuery.state = { $regex: state, $options: "i" }
-      }
-
-      // If we already have $or for search, we need to use $and to combine with location
-      if (query.$or) {
-        query.$and = [{ $or: query.$or }, locationQuery]
-        delete query.$or
-      } else {
-        Object.assign(query, locationQuery)
-      }
+    if (state) {
+      query["location.state"] = state
     }
 
-    const jobs = await Job.find(query).sort({ createdAt: -1 }).populate("postedBy", "name profileImage").limit(50)
+    if (q) {
+      query.$or = [
+        { title: { $regex: q, $options: "i" } },
+        { description: { $regex: q, $options: "i" } },
+        { skills: { $in: [new RegExp(q, "i")] } },
+      ]
+    }
 
-    return NextResponse.json(jobs)
+    await dbConnect()
+
+    // Execute query
+    const jobs = await Job.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate("postedBy", "name image")
+      .lean()
+
+    // Get total count for pagination
+    const total = await Job.countDocuments(query)
+
+    return NextResponse.json({
+      jobs,
+      pagination: {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit),
+      },
+    })
   } catch (error) {
-    console.error("Error fetching jobs:", error)
-    return NextResponse.json({ error: "Failed to fetch jobs. Please try again later." }, { status: 500 })
+    console.error("Error in jobs API:", error)
+    return NextResponse.json({ error: "Failed to fetch jobs" }, { status: 500 })
   }
 }
 
-export async function POST(req: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
 
@@ -62,21 +77,33 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    const data = await request.json()
+
+    // Validate required fields
+    const requiredFields = ["title", "description", "category", "budget", "location", "skills"]
+    for (const field of requiredFields) {
+      if (!data[field]) {
+        return NextResponse.json({ error: `Missing required field: ${field}` }, { status: 400 })
+      }
+    }
+
     await dbConnect()
 
-    const body = await req.json()
-
-    const newJob = new Job({
-      ...body,
-      postedBy: body.postedBy || session.user.id,
+    // Create job object
+    const job = new Job({
+      ...data,
+      postedBy: new ObjectId(session.user.id),
       status: "open",
+      applications: [],
+      createdAt: new Date(),
+      updatedAt: new Date(),
     })
 
-    await newJob.save()
+    await job.save()
 
-    return NextResponse.json(newJob, { status: 201 })
+    return NextResponse.json(job)
   } catch (error) {
     console.error("Error creating job:", error)
-    return NextResponse.json({ error: "Failed to create job. Please try again later." }, { status: 500 })
+    return NextResponse.json({ error: "Failed to create job" }, { status: 500 })
   }
 }

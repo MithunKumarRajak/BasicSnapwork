@@ -35,5 +35,5 @@ export async function middleware(request: NextRequest) {
 
 // Configure which paths the middleware should run on
 export const config = {
-  matcher: ["/dashboard/:path*", "/post-job", "/login", "/register"],
+  matcher: ["/dashboard/:path*", "/post-job", "/login", "/register", "/provider/:path*", "/create-profile"],
 }

@@ -1,32 +1,6 @@
-// Mark this file as server-only to prevent client imports
-import "server-only"
-import mongoose, { Schema, type Document } from "mongoose"
-import type { ObjectId } from "mongodb"
+import mongoose from "mongoose"
 
-export interface IJob extends Document {
-  title: string
-  description: string
-  category: string
-  budget: {
-    min: number
-    max: number
-  }
-  location: {
-    city: string
-    state: string
-    address?: string
-  }
-  skills: string[]
-  duration: string
-  postedBy: ObjectId
-  status: "open" | "in-progress" | "completed" | "cancelled"
-  applications: ObjectId[]
-  hiredApplicant?: ObjectId
-  createdAt: Date
-  updatedAt: Date
-}
-
-const JobSchema = new Schema<IJob>({
+const JobSchema = new mongoose.Schema({
   title: {
     type: String,
     required: [true, "Please provide a job title"],
@@ -63,7 +37,7 @@ const JobSchema = new Schema<IJob>({
   skills: [String],
   duration: String,
   postedBy: {
-    type: Schema.Types.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     ref: "User",
     required: [true, "Please provide a user ID"],
   },
@@ -74,12 +48,12 @@ const JobSchema = new Schema<IJob>({
   },
   applications: [
     {
-      type: Schema.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       ref: "Application",
     },
   ],
   hiredApplicant: {
-    type: Schema.Types.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
   createdAt: {
@@ -93,6 +67,9 @@ const JobSchema = new Schema<IJob>({
 })
 
 // Create the Job model
-const Job = mongoose.models.Job || mongoose.model<IJob>("Job", JobSchema)
+const Job = mongoose.models.Job || mongoose.model("Job", JobSchema)
 
+// Export as default
 export default Job
+// Also export as named export
+export { Job }

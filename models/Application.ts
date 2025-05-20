@@ -1,28 +1,25 @@
 // Mark this file as server-only to prevent client imports
 import "server-only"
-
 import mongoose, { Schema, type Document } from "mongoose"
 import type { ObjectId } from "mongodb"
 
 export interface IApplication extends Document {
-  jobId: ObjectId
-  applicantId: ObjectId
+  job: ObjectId
+  applicant: ObjectId
   coverLetter: string
-  expectedRate: number
-  availability: string
-  status: "pending" | "shortlisted" | "accepted" | "rejected" | "withdrawn"
-  employerNotes?: string
+  expectedPay: number
+  status: "pending" | "accepted" | "rejected" | "withdrawn"
   createdAt: Date
   updatedAt: Date
 }
 
 const ApplicationSchema = new Schema<IApplication>({
-  jobId: {
+  job: {
     type: Schema.Types.ObjectId,
     ref: "Job",
     required: [true, "Please provide a job ID"],
   },
-  applicantId: {
+  applicant: {
     type: Schema.Types.ObjectId,
     ref: "User",
     required: [true, "Please provide an applicant ID"],
@@ -31,20 +28,15 @@ const ApplicationSchema = new Schema<IApplication>({
     type: String,
     required: [true, "Please provide a cover letter"],
   },
-  expectedRate: {
+  expectedPay: {
     type: Number,
-    required: [true, "Please provide an expected rate"],
-  },
-  availability: {
-    type: String,
-    required: [true, "Please provide availability information"],
+    required: [true, "Please provide expected pay"],
   },
   status: {
     type: String,
-    enum: ["pending", "shortlisted", "accepted", "rejected", "withdrawn"],
+    enum: ["pending", "accepted", "rejected", "withdrawn"],
     default: "pending",
   },
-  employerNotes: String,
   createdAt: {
     type: Date,
     default: Date.now,

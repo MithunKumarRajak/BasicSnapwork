@@ -1,11 +1,10 @@
 import NextAuth from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
-import { connectToDatabase } from "@/lib/db"
-import { User } from "@/models/User"
 import bcrypt from "bcryptjs"
-import type { NextAuthOptions } from "next-auth"
+import dbConnect from "@/lib/db"
+import User from "@/models/User"
 
-export const authOptions: NextAuthOptions = {
+export const authOptions = {
   providers: [
     CredentialsProvider({
       name: "credentials",
@@ -18,27 +17,32 @@ export const authOptions: NextAuthOptions = {
           return null
         }
 
-        await connectToDatabase()
+        try {
+          await dbConnect()
 
-        const user = await User.findOne({ email: credentials.email })
+          const user = await User.findOne({ email: credentials.email })
 
-        if (!user || !user.password) {
+          if (!user || !user.password) {
+            return null
+          }
+
+          const isPasswordMatch = await bcrypt.compare(credentials.password, user.password)
+
+          if (!isPasswordMatch) {
+            return null
+          }
+
+          return {
+            id: user._id.toString(),
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            profileImage: user.image,
+            verificationStatus: user.isVerified ? "verified" : "unverified",
+          }
+        } catch (error) {
+          console.error("Authentication error:", error)
           return null
-        }
-
-        const isPasswordValid = await bcrypt.compare(credentials.password, user.password)
-
-        if (!isPasswordValid) {
-          return null
-        }
-
-        return {
-          id: user._id.toString(),
-          email: user.email,
-          name: user.name,
-          role: user.role,
-          verificationStatus: user.verificationStatus,
-          profileImage: user.profileImage,
         }
       },
     }),
@@ -48,8 +52,8 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id
         token.role = user.role
-        token.verificationStatus = user.verificationStatus
         token.profileImage = user.profileImage
+        token.verificationStatus = user.verificationStatus
       }
       return token
     },
@@ -57,8 +61,8 @@ export const authOptions: NextAuthOptions = {
       if (token) {
         session.user.id = token.id as string
         session.user.role = token.role as string
-        session.user.verificationStatus = token.verificationStatus as string
-        session.user.profileImage = token.profileImage as string
+        session.user.profileImage = token.profileImage as string | undefined
+        session.user.verificationStatus = token.verificationStatus as string | undefined
       }
       return session
     },
@@ -74,5 +78,4 @@ export const authOptions: NextAuthOptions = {
 }
 
 const handler = NextAuth(authOptions)
-
 export { handler as GET, handler as POST }

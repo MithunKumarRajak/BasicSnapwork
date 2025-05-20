@@ -1,5 +1,3 @@
-// Mark this file as server-only to prevent client imports
-import "server-only"
 import mongoose from "mongoose"
 
 const MONGODB_URI = process.env.MONGODB_URI
@@ -43,5 +41,7 @@ async function dbConnect() {
 
   return cached.conn
 }
+
+export const connectToDatabase = dbConnect
 
 export default dbConnect

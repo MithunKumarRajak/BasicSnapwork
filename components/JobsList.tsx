@@ -1,183 +1,93 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import Link from "next/link"
-import { Card, CardContent, CardFooter } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { useState, useEffect } from "react"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { MapPin, Clock, IndianRupee, User } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
-import VerificationBadge from "@/components/VerificationBadge"
+import { MapPin, Calendar } from "lucide-react"
+import Link from "next/link"
+import { formatDistanceToNow } from "date-fns"
 
 interface Job {
   _id: string
   title: string
   description: string
   category: string
-  budget: number
-  location: string
-  city?: string
-  state?: string
-  createdAt: string
+  budget: {
+    min: number
+    max: number
+  }
+  location: {
+    city: string
+    state: string
+  }
+  skills: string[]
   postedBy: {
     _id: string
     name: string
-    profileImage?: string
-    verificationStatus?: "unverified" | "pending" | "verified"
   }
+  createdAt: string
+  status: string
 }
 
-// Demo jobs data
-const demoJobs: Job[] = [
-  {
-    _id: "demo1",
-    title: "Electrician needed for house wiring",
-    description:
-      "Need an experienced electrician to fix wiring issues in a 2BHK apartment. Must have 3+ years of experience and own tools.",
-    category: "Electrician",
-    budget: 1500,
-    location: "Mumbai",
-    city: "Mumbai",
-    state: "Maharashtra",
-    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
-    postedBy: {
-      _id: "user1",
-      name: "Rahul Sharma",
-      verificationStatus: "verified",
-    },
-  },
-  {
-    _id: "demo2",
-    title: "Plumber for bathroom renovation",
-    description:
-      "Looking for a skilled plumber to install new fixtures in bathroom renovation project. Work expected to take 2 days.",
-    category: "Plumber",
-    budget: 2000,
-    location: "Delhi",
-    city: "Delhi",
-    state: "Delhi",
-    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
-    postedBy: {
-      _id: "user2",
-      name: "Priya Patel",
-      verificationStatus: "verified",
-    },
-  },
-  {
-    _id: "demo3",
-    title: "Carpenter needed for furniture assembly",
-    description:
-      "Need a carpenter to assemble 3 wardrobes and 2 beds. All materials will be provided. Looking for someone who can start immediately.",
-    category: "Carpenter",
-    budget: 1200,
-    location: "Bangalore",
-    city: "Bangalore",
-    state: "Karnataka",
-    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
-    postedBy: {
-      _id: "user3",
-      name: "Amit Kumar",
-      verificationStatus: "pending",
-    },
-  },
-  {
-    _id: "demo4",
-    title: "House cleaning service required",
-    description:
-      "Need thorough cleaning of 3BHK apartment including kitchen and bathrooms. Regular weekly service possible for the right candidate.",
-    category: "Cleaning",
-    budget: 800,
-    location: "Hyderabad",
-    city: "Hyderabad",
-    state: "Telangana",
-    createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(), // 12 hours ago
-    postedBy: {
-      _id: "user4",
-      name: "Sneha Reddy",
-      verificationStatus: "unverified",
-    },
-  },
-  {
-    _id: "demo5",
-    title: "Painter for 2BHK apartment",
-    description:
-      "Looking for an experienced painter to paint a 2BHK apartment. Need to finish within 3 days. Paint will be provided.",
-    category: "Painter",
-    budget: 5000,
-    location: "Chennai",
-    city: "Chennai",
-    state: "Tamil Nadu",
-    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
-    postedBy: {
-      _id: "user5",
-      name: "Karthik Rajan",
-      verificationStatus: "verified",
-    },
-  },
-  {
-    _id: "demo6",
-    title: "Gardener needed for lawn maintenance",
-    description:
-      "Need a gardener for regular maintenance of home garden. Tasks include mowing, trimming, and planting seasonal flowers.",
-    category: "Gardening",
-    budget: 600,
-    location: "Pune",
-    city: "Pune",
-    state: "Maharashtra",
-    createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(), // 6 hours ago
-    postedBy: {
-      _id: "user6",
-      name: "Vikram Desai",
-      verificationStatus: "pending",
-    },
-  },
-]
-
-export default function JobsList({
-  searchParams,
-}: {
+interface JobsListProps {
   searchParams: { [key: string]: string | string[] | undefined }
-}) {
+}
+
+export default function JobsList({ searchParams }: JobsListProps) {
   const [jobs, setJobs] = useState<Job[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [pagination, setPagination] = useState({
+    total: 0,
+    page: 1,
+    limit: 10,
+    pages: 1,
+  })
 
   useEffect(() => {
     async function fetchJobs() {
+      setLoading(true)
+      setError(null)
+
       try {
-        setLoading(true)
+        // Build query string from search params
+        const queryParams = new URLSearchParams()
 
-        // Filter demo jobs based on search parameters
-        let filteredJobs = [...demoJobs]
-
-        // Apply category filter
         if (searchParams.category) {
-          const category = searchParams.category.toString()
-          filteredJobs = filteredJobs.filter((job) => job.category.toLowerCase() === category.toLowerCase())
+          queryParams.append("category", searchParams.category.toString())
         }
 
-        // Apply search query filter
-        if (searchParams.q) {
-          const query = searchParams.q.toString().toLowerCase()
-          filteredJobs = filteredJobs.filter(
-            (job) => job.title.toLowerCase().includes(query) || job.description.toLowerCase().includes(query),
-          )
-        }
-
-        // Apply city filter
         if (searchParams.city) {
-          const city = searchParams.city.toString().toLowerCase()
-          filteredJobs = filteredJobs.filter((job) => job.city?.toLowerCase().includes(city))
+          queryParams.append("city", searchParams.city.toString())
         }
 
-        // Apply state filter
         if (searchParams.state) {
-          const state = searchParams.state.toString().toLowerCase()
-          filteredJobs = filteredJobs.filter((job) => job.state?.toLowerCase().includes(state))
+          queryParams.append("state", searchParams.state.toString())
         }
 
-        setJobs(filteredJobs)
-      } catch (error) {
-        console.error("Error processing jobs:", error)
+        if (searchParams.q) {
+          queryParams.append("q", searchParams.q.toString())
+        }
+
+        if (searchParams.page) {
+          queryParams.append("page", searchParams.page.toString())
+        }
+
+        const response = await fetch(`/api/jobs?${queryParams.toString()}`)
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch jobs")
+        }
+
+        const data = await response.json()
+        setJobs(data.jobs)
+        setPagination(data.pagination)
+      } catch (err) {
+        console.error("Error fetching jobs:", err)
+        setError("Failed to load jobs. Please try again.")
+        setJobs([])
       } finally {
         setLoading(false)
       }
@@ -188,86 +98,181 @@ export default function JobsList({
 
   if (loading) {
     return (
-      <div className="grid gap-6 md:grid-cols-2">
-        {Array.from({ length: 6 }).map((_, index) => (
-          <Card key={index} className="overflow-hidden">
-            <CardContent className="p-6">
-              <Skeleton className="h-6 w-3/4 mb-2" />
-              <Skeleton className="h-4 w-full mb-4" />
-              <div className="flex items-center space-x-2 mb-4">
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-4 w-24" />
+      <div className="space-y-4">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <Card key={i} className="overflow-hidden">
+            <CardContent className="p-0">
+              <div className="p-6">
+                <Skeleton className="h-6 w-2/3 mb-2" />
+                <Skeleton className="h-4 w-1/4 mb-4" />
+                <Skeleton className="h-4 w-full mb-2" />
+                <Skeleton className="h-4 w-full mb-2" />
+                <Skeleton className="h-4 w-3/4" />
+                <div className="flex flex-wrap gap-2 mt-4">
+                  <Skeleton className="h-6 w-16" />
+                  <Skeleton className="h-6 w-20" />
+                  <Skeleton className="h-6 w-24" />
+                </div>
               </div>
-              <Skeleton className="h-4 w-full mb-2" />
-              <Skeleton className="h-4 w-full mb-2" />
-              <Skeleton className="h-4 w-2/3" />
+              <div className="bg-muted p-4 flex justify-between items-center">
+                <Skeleton className="h-4 w-1/3" />
+                <Skeleton className="h-9 w-24" />
+              </div>
             </CardContent>
-            <CardFooter className="bg-secondary/50 p-6">
-              <Skeleton className="h-10 w-full" />
-            </CardFooter>
           </Card>
         ))}
       </div>
     )
   }
 
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="p-6 text-center">
+          <p className="text-red-500 mb-4">{error}</p>
+          <Button onClick={() => window.location.reload()}>Try Again</Button>
+        </CardContent>
+      </Card>
+    )
+  }
+
   if (jobs.length === 0) {
     return (
-      <div className="rounded-lg border p-8 text-center">
-        <h3 className="mb-2 text-xl font-semibold">No jobs found</h3>
-        <p className="mb-4 text-muted-foreground">
-          Try adjusting your search filters or check back later for new opportunities.
-        </p>
-        <Button asChild variant="outline">
-          <Link href="/jobs">Clear Filters</Link>
-        </Button>
-      </div>
+      <Card>
+        <CardContent className="p-6 text-center">
+          <h3 className="text-lg font-medium mb-2">No jobs found</h3>
+          <p className="text-muted-foreground mb-4">
+            Try adjusting your search filters or check back later for new opportunities.
+          </p>
+          <Button asChild>
+            <Link href="/jobs">Clear Filters</Link>
+          </Button>
+        </CardContent>
+      </Card>
     )
   }
 
   return (
-    <div className="grid gap-6 md:grid-cols-2">
-      {jobs.map((job) => (
-        <Card key={job._id} className="overflow-hidden">
-          <CardContent className="p-6">
-            <div className="mb-3 flex items-center justify-between">
-              <Badge>{job.category}</Badge>
-              <div className="flex items-center text-sm text-muted-foreground">
-                <Clock className="mr-1 h-3 w-3" />
-                {new Date(job.createdAt).toLocaleDateString()}
-              </div>
-            </div>
-            <h3 className="mb-2 text-xl font-bold">{job.title}</h3>
-            <div className="mb-4 flex flex-wrap gap-2">
-              <div className="flex items-center text-sm text-muted-foreground">
-                <MapPin className="mr-1 h-3 w-3" />
-                {job.city || ""}
-                {job.city && job.state && ", "}
-                {job.state || job.location}
-              </div>
-              <div className="flex items-center text-sm text-muted-foreground">
-                <IndianRupee className="mr-1 h-3 w-3" />₹{job.budget.toLocaleString("en-IN")}
-              </div>
-            </div>
-            <p className="text-sm text-muted-foreground line-clamp-3">{job.description}</p>
+    <div className="space-y-6">
+      <div className="space-y-4">
+        {jobs.map((job) => (
+          <Card key={job._id} className="overflow-hidden hover:shadow-md transition-shadow">
+            <CardContent className="p-0">
+              <div className="p-6">
+                <div className="flex justify-between items-start">
+                  <h3 className="text-xl font-semibold mb-1">
+                    <Link href={`/jobs/${job._id}`} className="hover:text-primary transition-colors">
+                      {job.title}
+                    </Link>
+                  </h3>
+                  <Badge>{job.category}</Badge>
+                </div>
 
-            <div className="mt-4 flex items-center text-sm">
-              <User className="mr-1 h-3 w-3 text-muted-foreground" />
-              <span className="text-muted-foreground">Posted by: {job.postedBy.name}</span>
-              {job.postedBy.verificationStatus && (
-                <span className="ml-1">
-                  <VerificationBadge status={job.postedBy.verificationStatus} size="sm" />
-                </span>
-              )}
-            </div>
-          </CardContent>
-          <CardFooter className="bg-secondary/50 p-6">
-            <Button asChild className="w-full">
-              <Link href={`/jobs/${job._id}`}>View Details</Link>
-            </Button>
-          </CardFooter>
-        </Card>
-      ))}
+                <div className="flex items-center text-muted-foreground text-sm mb-3">
+                  <MapPin className="h-3.5 w-3.5 mr-1" />
+                  <span>
+                    {job.location.city}, {job.location.state}
+                  </span>
+                  <span className="mx-2">•</span>
+                  <Calendar className="h-3.5 w-3.5 mr-1" />
+                  <span>{formatDistanceToNow(new Date(job.createdAt), { addSuffix: true })}</span>
+                </div>
+
+                <p className="text-muted-foreground line-clamp-2 mb-4">{job.description}</p>
+
+                <div className="flex flex-wrap gap-2">
+                  {job.skills.slice(0, 3).map((skill) => (
+                    <Badge key={skill} variant="outline">
+                      {skill}
+                    </Badge>
+                  ))}
+                  {job.skills.length > 3 && <Badge variant="outline">+{job.skills.length - 3} more</Badge>}
+                </div>
+              </div>
+
+              <div className="bg-muted p-4 flex justify-between items-center">
+                <div className="font-medium">
+                  ₹{job.budget.min.toLocaleString()} - ₹{job.budget.max.toLocaleString()}
+                </div>
+                <Button asChild>
+                  <Link href={`/jobs/${job._id}`}>View Details</Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {pagination.pages > 1 && (
+        <div className="flex justify-center mt-8">
+          <div className="flex space-x-2">
+            {pagination.page > 1 && (
+              <Button variant="outline" asChild>
+                <Link
+                  href={{
+                    pathname: "/jobs",
+                    query: { ...searchParams, page: pagination.page - 1 },
+                  }}
+                >
+                  Previous
+                </Link>
+              </Button>
+            )}
+
+            {Array.from({ length: pagination.pages }, (_, i) => i + 1)
+              .filter(
+                (page) =>
+                  page === 1 ||
+                  page === pagination.pages ||
+                  (page >= pagination.page - 1 && page <= pagination.page + 1),
+              )
+              .map((page, i, arr) => {
+                if (i > 0 && arr[i - 1] !== page - 1) {
+                  return (
+                    <div key={`ellipsis-${page}`} className="flex items-center">
+                      <span className="px-2">...</span>
+                      <Button variant={pagination.page === page ? "default" : "outline"} asChild>
+                        <Link
+                          href={{
+                            pathname: "/jobs",
+                            query: { ...searchParams, page },
+                          }}
+                        >
+                          {page}
+                        </Link>
+                      </Button>
+                    </div>
+                  )
+                }
+                return (
+                  <Button key={page} variant={pagination.page === page ? "default" : "outline"} asChild>
+                    <Link
+                      href={{
+                        pathname: "/jobs",
+                        query: { ...searchParams, page },
+                      }}
+                    >
+                      {page}
+                    </Link>
+                  </Button>
+                )
+              })}
+
+            {pagination.page < pagination.pages && (
+              <Button variant="outline" asChild>
+                <Link
+                  href={{
+                    pathname: "/jobs",
+                    query: { ...searchParams, page: pagination.page + 1 },
+                  }}
+                >
+                  Next
+                </Link>
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

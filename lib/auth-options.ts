@@ -1,8 +1,8 @@
-import type { NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
-
-// This file is used by the app directory
-// It doesn't contain any server-only imports
+import dbConnect from "@/lib/db"
+import User from "@/models/User"
+import bcrypt from "bcryptjs"
+import type { NextAuthOptions } from "next-auth"
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -13,9 +13,32 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        // The actual database connection is handled in the API route
-        // This is just a placeholder that will be overridden
-        return null
+        if (!credentials?.email || !credentials?.password) {
+          return null
+        }
+
+        await dbConnect()
+
+        const user = await User.findOne({ email: credentials.email })
+
+        if (!user || !user.password) {
+          return null
+        }
+
+        const isPasswordValid = await bcrypt.compare(credentials.password, user.password)
+
+        if (!isPasswordValid) {
+          return null
+        }
+
+        return {
+          id: user._id.toString(),
+          email: user.email,
+          name: user.name,
+          role: user.role,
+          verificationStatus: user.verificationStatus,
+          profileImage: user.profileImage,
+        }
       },
     }),
   ],

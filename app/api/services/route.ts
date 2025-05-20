@@ -1,8 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { getCollection } from "@/lib/db-service"
-import { ObjectId } from "mongodb"
-import { getServerSession } from "next-auth"
+import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
+import dbConnect from "@/lib/db"
+import Service from "@/models/Service"
+import { ObjectId } from "mongodb"
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,50 +11,52 @@ export async function GET(request: NextRequest) {
 
     // Parse query parameters
     const category = searchParams.get("category")
-    const featured = searchParams.get("featured") === "true"
-    const minPrice = searchParams.get("minPrice") ? Number.parseInt(searchParams.get("minPrice")!) : undefined
-    const maxPrice = searchParams.get("maxPrice") ? Number.parseInt(searchParams.get("maxPrice")!) : undefined
-    const minRating = searchParams.get("minRating") ? Number.parseFloat(searchParams.get("minRating")!) : undefined
-    const limit = searchParams.get("limit") ? Number.parseInt(searchParams.get("limit")!) : 20
+    const city = searchParams.get("city")
+    const state = searchParams.get("state")
+    const q = searchParams.get("q")
     const page = searchParams.get("page") ? Number.parseInt(searchParams.get("page")!) : 1
+    const limit = searchParams.get("limit") ? Number.parseInt(searchParams.get("limit")!) : 10
     const skip = (page - 1) * limit
 
     // Build query
-    const query: any = { isActive: true }
+    const query: any = {}
 
     if (category) {
       query.category = category
     }
 
-    if (featured) {
-      query.featured = true
+    if (city) {
+      query["location.city"] = city
     }
 
-    if (minPrice !== undefined || maxPrice !== undefined) {
-      query.price = {}
-      if (minPrice !== undefined) query.price.$gte = minPrice
-      if (maxPrice !== undefined) query.price.$lte = maxPrice
+    if (state) {
+      query["location.state"] = state
     }
 
-    if (minRating !== undefined) {
-      query.rating = { $gte: minRating }
+    if (q) {
+      query.$or = [{ title: { $regex: q, $options: "i" } }, { description: { $regex: q, $options: "i" } }]
     }
 
-    // Get services collection
-    const collection = await getCollection("services")
+    await dbConnect()
 
     // Execute query
-    const services = await collection.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).toArray()
+    const services = await Service.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate("provider", "name image")
+      .lean()
 
     // Get total count for pagination
-    const total = await collection.countDocuments(query)
+    const total = await Service.countDocuments(query)
 
-    return NextResponse.json(services, {
-      headers: {
-        "X-Total-Count": total.toString(),
-        "X-Page": page.toString(),
-        "X-Limit": limit.toString(),
-        "X-Total-Pages": Math.ceil(total / limit).toString(),
+    return NextResponse.json({
+      services,
+      pagination: {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit),
       },
     })
   } catch (error) {
@@ -73,33 +76,26 @@ export async function POST(request: NextRequest) {
     const data = await request.json()
 
     // Validate required fields
-    const requiredFields = ["title", "description", "price", "category", "location"]
+    const requiredFields = ["title", "description", "category", "price", "location"]
     for (const field of requiredFields) {
       if (!data[field]) {
         return NextResponse.json({ error: `Missing required field: ${field}` }, { status: 400 })
       }
     }
 
+    await dbConnect()
+
     // Create service object
-    const service = {
+    const service = new Service({
       ...data,
-      providerId: new ObjectId(session.user.id),
+      provider: new ObjectId(session.user.id),
       createdAt: new Date(),
       updatedAt: new Date(),
-      isActive: true,
-      rating: 0,
-      reviewCount: 0,
-      images: data.images || [],
-    }
-
-    // Insert into database
-    const collection = await getCollection("services")
-    const result = await collection.insertOne(service)
-
-    return NextResponse.json({
-      _id: result.insertedId,
-      ...service,
     })
+
+    await service.save()
+
+    return NextResponse.json(service)
   } catch (error) {
     console.error("Error creating service:", error)
     return NextResponse.json({ error: "Failed to create service" }, { status: 500 })
