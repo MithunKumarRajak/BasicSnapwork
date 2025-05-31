@@ -178,3 +178,6 @@ export async function deleteJobAction(jobId: string) {
     return { error: "Failed to delete job. Please try again." }
   }
 }
+
+// Add the deleteJob named export that calls deleteJobAction
+export const deleteJob = deleteJobAction

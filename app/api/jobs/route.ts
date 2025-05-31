@@ -10,49 +10,154 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
 
     // Parse query parameters
+    const search = searchParams.get("search")
     const category = searchParams.get("category")
     const city = searchParams.get("city")
     const state = searchParams.get("state")
-    const q = searchParams.get("q")
+    const jobType = searchParams.get("jobType")
+    const experienceLevel = searchParams.get("experience")
+    const minPrice = searchParams.get("minPrice") ? Number.parseInt(searchParams.get("minPrice")!) : null
+    const maxPrice = searchParams.get("maxPrice") ? Number.parseInt(searchParams.get("maxPrice")!) : null
+    const skills = searchParams.get("skills")?.split(",").filter(Boolean) || []
+    const isRemote = searchParams.get("remote") === "true"
+    const isUrgent = searchParams.get("urgent") === "true"
+    const isVerifiedOnly = searchParams.get("verified") === "true"
     const page = searchParams.get("page") ? Number.parseInt(searchParams.get("page")!) : 1
     const limit = searchParams.get("limit") ? Number.parseInt(searchParams.get("limit")!) : 10
     const skip = (page - 1) * limit
 
     // Build query
-    const query: any = {}
+    const query: any = { status: "open" }
 
+    // Search in title and description
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } },
+        { skills: { $in: [new RegExp(search, "i")] } },
+      ]
+    }
+
+    // Category filter
     if (category) {
       query.category = category
     }
 
+    // Location filters
     if (city) {
-      query["location.city"] = city
+      query["location.city"] = { $regex: city, $options: "i" }
     }
 
     if (state) {
-      query["location.state"] = state
+      query["location.state"] = { $regex: state, $options: "i" }
     }
 
-    if (q) {
-      query.$or = [
-        { title: { $regex: q, $options: "i" } },
-        { description: { $regex: q, $options: "i" } },
-        { skills: { $in: [new RegExp(q, "i")] } },
-      ]
+    // Job type filter
+    if (jobType) {
+      query.jobType = jobType
+    }
+
+    // Experience level filter
+    if (experienceLevel) {
+      query.experienceLevel = experienceLevel
+    }
+
+    // Price range filter
+    if (minPrice !== null || maxPrice !== null) {
+      query.$and = query.$and || []
+
+      if (minPrice !== null) {
+        query.$and.push({ "budget.min": { $gte: minPrice } })
+      }
+
+      if (maxPrice !== null) {
+        query.$and.push({ "budget.max": { $lte: maxPrice } })
+      }
+    }
+
+    // Skills filter
+    if (skills.length > 0) {
+      query.skills = { $in: skills.map((skill) => new RegExp(skill, "i")) }
+    }
+
+    // Remote work filter
+    if (isRemote) {
+      query.isRemote = true
+    }
+
+    // Urgent jobs filter
+    if (isUrgent) {
+      query.isUrgent = true
     }
 
     await dbConnect()
 
-    // Execute query
-    const jobs = await Job.find(query)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .populate("postedBy", "name image")
-      .lean()
+    // Build aggregation pipeline
+    const pipeline: any[] = [
+      { $match: query },
+      {
+        $lookup: {
+          from: "users",
+          localField: "postedBy",
+          foreignField: "_id",
+          as: "postedBy",
+          pipeline: [
+            {
+              $project: {
+                name: 1,
+                verificationStatus: 1,
+                rating: 1,
+                password: 0,
+              },
+            },
+          ],
+        },
+      },
+      { $unwind: "$postedBy" },
+      {
+        $lookup: {
+          from: "applications",
+          localField: "_id",
+          foreignField: "jobId",
+          as: "applications",
+        },
+      },
+      {
+        $addFields: {
+          applicationsCount: { $size: "$applications" },
+        },
+      },
+      {
+        $project: {
+          applications: 0,
+        },
+      },
+    ]
+
+    // Add verified employers filter
+    if (isVerifiedOnly) {
+      pipeline.splice(2, 0, {
+        $match: {
+          "postedBy.verificationStatus": "verified",
+        },
+      })
+    }
+
+    // Add sorting
+    pipeline.push({ $sort: { createdAt: -1 } })
+
+    // Add pagination
+    pipeline.push({ $skip: skip })
+    pipeline.push({ $limit: limit })
+
+    // Execute aggregation
+    const jobs = await Job.aggregate(pipeline)
 
     // Get total count for pagination
-    const total = await Job.countDocuments(query)
+    const countPipeline = pipeline.slice(0, -2) // Remove skip and limit
+    countPipeline.push({ $count: "total" })
+    const countResult = await Job.aggregate(countPipeline)
+    const total = countResult[0]?.total || 0
 
     return NextResponse.json({
       jobs,

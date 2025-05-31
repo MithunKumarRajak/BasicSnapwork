@@ -54,4 +54,6 @@ const UserSchema = new Schema<IUser>({
 // Create the User model
 const User = mongoose.models.User || mongoose.model<IUser>("User", UserSchema)
 
+// Export as both default and named export
+export { User }
 export default User

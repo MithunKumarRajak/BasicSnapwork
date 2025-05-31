@@ -44,4 +44,6 @@ async function dbConnect() {
   return cached.conn
 }
 
+// Export as both default and named export
+export { dbConnect }
 export default dbConnect
