@@ -5,51 +5,33 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-
-interface Job {
-  _id: string
-  title: string
-  description: string
-  category: string
-  budget: {
-    min: number
-    max: number
-  }
-  location: {
-    city: string
-    state: string
-  }
-  postedBy: {
-    name: string
-  }
-  createdAt: string
-}
+import { MockDataService, type Job } from "@/lib/mock-data"
+import { MapPin, Clock, IndianRupee } from "lucide-react"
 
 export default function JobsPage() {
   const [jobs, setJobs] = useState<Job[]>([])
   const [loading, setLoading] = useState(true)
-  const [category, setCategory] = useState("")
-  const [city, setCity] = useState("")
+  const [category, setCategory] = useState("all")
+  const [city, setCity] = useState("all")
   const [minBudget, setMinBudget] = useState("")
   const [maxBudget, setMaxBudget] = useState("")
 
-  const fetchJobs = async () => {
+  const fetchJobs = () => {
     setLoading(true)
-    try {
-      const params = new URLSearchParams()
-      if (category) params.append("category", category)
-      if (city) params.append("city", city)
-      if (minBudget) params.append("minBudget", minBudget)
-      if (maxBudget) params.append("maxBudget", maxBudget)
 
-      const res = await fetch(`/api/jobs?${params.toString()}`)
-      const data = await res.json()
-      setJobs(data.jobs || [])
-    } catch (error) {
-      console.error("Error fetching jobs:", error)
-    } finally {
+    // Simulate loading delay
+    setTimeout(() => {
+      const filters = {
+        category: category === "all" ? undefined : category,
+        city: city === "all" ? undefined : city,
+        minBudget: minBudget ? Number.parseInt(minBudget) : undefined,
+        maxBudget: maxBudget ? Number.parseInt(maxBudget) : undefined,
+      }
+
+      const filteredJobs = MockDataService.getJobs(filters)
+      setJobs(filteredJobs)
       setLoading(false)
-    }
+    }, 500)
   }
 
   useEffect(() => {
@@ -133,27 +115,37 @@ export default function JobsPage() {
 
       {/* Jobs List */}
       {loading ? (
-        <div className="text-center">Loading jobs...</div>
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-2">Loading jobs...</p>
+        </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {jobs.map((job) => (
-            <Card key={job._id}>
+            <Card key={job.id} className="hover:shadow-lg transition-shadow">
               <CardHeader>
                 <CardTitle className="text-lg">{job.title}</CardTitle>
-                <p className="text-sm text-gray-600">{job.category}</p>
+                <p className="text-sm text-muted-foreground">{job.category}</p>
               </CardHeader>
               <CardContent>
-                <p className="text-sm mb-4">{job.description.substring(0, 100)}...</p>
+                <p className="text-sm mb-4 line-clamp-3">{job.description}</p>
                 <div className="space-y-2">
-                  <p className="text-sm">
-                    <strong>Budget:</strong> ₹{job.budget.min} - ₹{job.budget.max}
-                  </p>
-                  <p className="text-sm">
-                    <strong>Location:</strong> {job.location.city}, {job.location.state}
-                  </p>
-                  <p className="text-sm">
-                    <strong>Posted by:</strong> {job.postedBy.name}
-                  </p>
+                  <div className="flex items-center text-sm">
+                    <IndianRupee className="h-4 w-4 mr-1" />
+                    <span>
+                      ₹{job.budget.min} - ₹{job.budget.max}
+                    </span>
+                  </div>
+                  <div className="flex items-center text-sm">
+                    <MapPin className="h-4 w-4 mr-1" />
+                    <span>
+                      {job.location.city}, {job.location.state}
+                    </span>
+                  </div>
+                  <div className="flex items-center text-sm">
+                    <Clock className="h-4 w-4 mr-1" />
+                    <span>Posted by {job.postedByName}</span>
+                  </div>
                 </div>
                 <Button className="w-full mt-4">Apply Now</Button>
               </CardContent>
@@ -163,7 +155,7 @@ export default function JobsPage() {
       )}
 
       {!loading && jobs.length === 0 && (
-        <div className="text-center text-gray-500">No jobs found matching your criteria.</div>
+        <div className="text-center text-muted-foreground py-8">No jobs found matching your criteria.</div>
       )}
     </div>
   )

@@ -2,40 +2,36 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
-import Navbar from "@/components/Navbar"
-import Footer from "@/components/Footer"
-import { Toaster } from "@/components/ui/toaster"
-import AuthProvider from "@/components/providers/AuthProvider"
 import { ThemeProvider } from "@/components/theme-provider"
-import ScrollToTop from "@/components/ScrollToTop"
+import { AuthProvider } from "@/lib/auth-context"
+import Navbar from "@/components/Navbar"
+import { Toaster } from "@/components/ui/toaster"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "SnapWork - Find & Post Jobs",
-  description: "A platform for finding and posting quick jobs and gigs",
+  title: "SnapWork - Find Daily Work & Services in India",
+  description: "Connect with local workers and find daily work opportunities across India",
     generator: 'v0.dev'
 }
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode
-}>) {
+}) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <AuthProvider>
-          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-            <div className="flex min-h-screen flex-col">
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <AuthProvider>
+            <div className="min-h-screen bg-background">
               <Navbar />
-              <main className="flex-1">{children}</main>
-              <Footer />
-              <ScrollToTop />
+              <main>{children}</main>
               <Toaster />
             </div>
-          </ThemeProvider>
-        </AuthProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   )
